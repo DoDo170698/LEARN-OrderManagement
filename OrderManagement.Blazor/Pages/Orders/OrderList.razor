@@ -1,0 +1,182 @@
+@page "/orders"
+@using OrderManagement.Blazor.Services
+@inject OrderService OrderService
+@inject OrderSubscriptionService SubscriptionService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+
+<PageTitle>Orders</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Orders</h1>
+        <a href="/orders/create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Create New Order
+        </a>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading orders...</p>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+    else if (!orders.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i> No orders found. Create your first order!
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Order Number</th>
+                        <th>Customer</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Total Amount</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in orders)
+                    {
+                        <tr>
+                            <td><strong>@order.OrderNumber</strong></td>
+                            <td>@order.CustomerName</td>
+                            <td>@order.CustomerEmail</td>
+                            <td>
+                                <span class="badge @GetStatusBadgeClass(order.Status)">
+                                    @order.Status
+                                </span>
+                            </td>
+                            <td><strong>${@order.TotalAmount:N2}</strong></td>
+                            <td>@order.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <a href="/orders/@order.Id" class="btn btn-sm btn-info me-1">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                <a href="/orders/@order.Id/edit" class="btn btn-sm btn-warning">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-3">
+            <p class="text-muted">Total: @orders.Count orders</p>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Order> orders = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+    private bool realtimeEnabled = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrdersAsync();
+        await SetupRealtimeSubscriptionsAsync();
+    }
+
+    private async Task LoadOrdersAsync()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            orders = await OrderService.GetAllOrdersAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load orders: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task SetupRealtimeSubscriptionsAsync()
+    {
+        try
+        {
+            // Subscribe to order created events
+            SubscriptionService.OnOrderCreated += async (order) =>
+            {
+                await InvokeAsync(() =>
+                {
+                    // Add new order to the list
+                    if (!orders.Any(o => o.Id == order.Id))
+                    {
+                        orders.Insert(0, order);
+                        StateHasChanged();
+                    }
+                });
+            };
+
+            // Subscribe to order updated events
+            SubscriptionService.OnOrderUpdated += async (order) =>
+            {
+                await InvokeAsync(() =>
+                {
+                    // Update existing order in the list
+                    var existingOrder = orders.FirstOrDefault(o => o.Id == order.Id);
+                    if (existingOrder != null)
+                    {
+                        var index = orders.IndexOf(existingOrder);
+                        orders[index] = order;
+                        StateHasChanged();
+                    }
+                });
+            };
+
+            await SubscriptionService.ConnectAsync();
+            await SubscriptionService.SubscribeToOrderCreatedAsync();
+            await SubscriptionService.SubscribeToOrderUpdatedAsync();
+
+            realtimeEnabled = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Realtime subscription setup failed: {ex.Message}");
+            // Continue without realtime updates
+        }
+    }
+
+    private string GetStatusBadgeClass(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.Pending => "bg-warning text-dark",
+            OrderStatus.Processing => "bg-info",
+            OrderStatus.Completed => "bg-success",
+            OrderStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await SubscriptionService.DisposeAsync();
+    }
+}

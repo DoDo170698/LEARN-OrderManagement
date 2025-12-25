@@ -1,0 +1,6 @@
+@OrderManagement.GraphQL_HostAddress = http://localhost:5118
+
+GET {{OrderManagement.GraphQL_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

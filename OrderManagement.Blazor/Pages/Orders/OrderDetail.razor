@@ -1,0 +1,181 @@
+@page "/orders/{id:guid}"
+@using OrderManagement.Blazor.Services
+@inject OrderService OrderService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Order Details</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Order Details</h1>
+        <div>
+            <a href="/orders" class="btn btn-secondary me-2">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+            <a href="/orders/@Id/edit" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading order details...</p>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+    else if (order == null)
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-info-circle"></i> Order not found.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Order Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Order Number:</th>
+                                <td><strong>@order.OrderNumber</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td>
+                                    <span class="badge @GetStatusBadgeClass(order.Status)">
+                                        @order.Status
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Customer Name:</th>
+                                <td>@order.CustomerName</td>
+                            </tr>
+                            <tr>
+                                <th>Customer Email:</th>
+                                <td>@order.CustomerEmail</td>
+                            </tr>
+                            <tr>
+                                <th>Created At:</th>
+                                <td>@order.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                            </tr>
+                            <tr>
+                                <th>Updated At:</th>
+                                <td>@order.UpdatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                            </tr>
+                            <tr>
+                                <th>Total Amount:</th>
+                                <td><h4 class="text-success mb-0">${@order.TotalAmount:N2}</h4></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Order Items (@order.Items.Count)</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (!order.Items.Any())
+                        {
+                            <p class="text-muted">No items in this order.</p>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th class="text-center">Qty</th>
+                                            <th class="text-end">Price</th>
+                                            <th class="text-end">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in order.Items)
+                                        {
+                                            <tr>
+                                                <td>@item.ProductName</td>
+                                                <td class="text-center">@item.Quantity</td>
+                                                <td class="text-end">${@item.UnitPrice:N2}</td>
+                                                <td class="text-end"><strong>${@item.Subtotal:N2}</strong></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="table-dark">
+                                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                            <td class="text-end"><strong>${@order.TotalAmount:N2}</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private Order? order;
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrderAsync();
+    }
+
+    private async Task LoadOrderAsync()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            order = await OrderService.GetOrderByIdAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load order: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetStatusBadgeClass(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.Pending => "bg-warning text-dark",
+            OrderStatus.Processing => "bg-info",
+            OrderStatus.Completed => "bg-success",
+            OrderStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

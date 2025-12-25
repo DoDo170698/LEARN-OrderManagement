@@ -1,0 +1,216 @@
+@page "/orders/{id:guid}/edit"
+@using OrderManagement.Blazor.Services
+@inject OrderService OrderService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Edit Order</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Edit Order</h1>
+        <div>
+            <a href="/orders/@Id" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Details
+            </a>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="text-center my-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading order...</p>
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+    else if (order == null)
+    {
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-info-circle"></i> Order not found.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <EditForm Model="@updateInput" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator />
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Order Information</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Order Number</label>
+                                <input type="text" class="form-control" value="@order.OrderNumber" readonly />
+                                <small class="text-muted">Order number cannot be changed</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Customer Name</label>
+                                <InputText @bind-Value="updateInput.CustomerName" class="form-control" placeholder="Leave empty to keep current" />
+                                <small class="text-muted">Current: @order.CustomerName</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Customer Email</label>
+                                <InputText @bind-Value="updateInput.CustomerEmail" class="form-control" type="email" placeholder="Leave empty to keep current" />
+                                <small class="text-muted">Current: @order.CustomerEmail</small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <InputSelect @bind-Value="selectedStatus" class="form-select">
+                                    <option value="">-- Keep current status --</option>
+                                    <option value="@OrderStatus.Pending">Pending</option>
+                                    <option value="@OrderStatus.Processing">Processing</option>
+                                    <option value="@OrderStatus.Completed">Completed</option>
+                                    <option value="@OrderStatus.Cancelled">Cancelled</option>
+                                </InputSelect>
+                                <small class="text-muted">Current: <span class="badge @GetStatusBadgeClass(order.Status)">@order.Status</span></small>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5>Order Items (Read-only)</h5>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Items cannot be edited after order creation. Total: <strong>${@order.TotalAmount:N2}</strong>
+                            </div>
+
+                            <div class="list-group">
+                                @foreach (var item in order.Items)
+                                {
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>@item.ProductName</strong>
+                                            <span>${@item.Subtotal:N2}</span>
+                                        </div>
+                                        <small class="text-muted">@item.Quantity x $@item.UnitPrice</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary me-2" @onclick="Cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                <span>Updating...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-check-circle"></i>
+                                <span> Update Order</span>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private Order? order;
+    private UpdateOrderInput updateInput = new();
+    private string? selectedStatus;
+
+    private bool isLoading = true;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOrderAsync();
+    }
+
+    private async Task LoadOrderAsync()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            order = await OrderService.GetOrderByIdAsync(Id);
+
+            if (order != null)
+            {
+                updateInput.Id = order.Id;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load order: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo($"/orders/{Id}");
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            // Parse selected status
+            if (!string.IsNullOrEmpty(selectedStatus))
+            {
+                updateInput.Status = Enum.Parse<OrderStatus>(selectedStatus);
+            }
+
+            // Check if anything was actually changed
+            if (string.IsNullOrWhiteSpace(updateInput.CustomerName) &&
+                string.IsNullOrWhiteSpace(updateInput.CustomerEmail) &&
+                !updateInput.Status.HasValue)
+            {
+                errorMessage = "Please change at least one field to update.";
+                return;
+            }
+
+            var updatedOrder = await OrderService.UpdateOrderAsync(updateInput);
+            Navigation.NavigateTo($"/orders/{updatedOrder.Id}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to update order: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private string GetStatusBadgeClass(OrderStatus status)
+    {
+        return status switch
+        {
+            OrderStatus.Pending => "bg-warning text-dark",
+            OrderStatus.Processing => "bg-info",
+            OrderStatus.Completed => "bg-success",
+            OrderStatus.Cancelled => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

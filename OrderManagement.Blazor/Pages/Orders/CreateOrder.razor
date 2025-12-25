@@ -1,0 +1,196 @@
+@page "/orders/create"
+@using OrderManagement.Blazor.Services
+@inject OrderService OrderService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<PageTitle>Create Order</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Create New Order</h1>
+        <a href="/orders" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            <EditForm Model="@orderInput" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Customer Information</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Customer Name *</label>
+                            <InputText @bind-Value="orderInput.CustomerName" class="form-control" placeholder="Enter customer name" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Customer Email *</label>
+                            <InputText @bind-Value="orderInput.CustomerEmail" class="form-control" type="email" placeholder="customer@example.com" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5>Order Items</h5>
+                        <p class="text-muted">Add at least one item to the order</p>
+                    </div>
+                </div>
+
+                <hr />
+
+                <h5 class="mb-3">Items</h5>
+
+                @foreach (var (item, index) in orderInput.Items.Select((item, index) => (item, index)))
+                {
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="row align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label">Product Name *</label>
+                                    <InputText @bind-Value="item.ProductName" class="form-control" placeholder="Product name" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Quantity *</label>
+                                    <InputNumber @bind-Value="item.Quantity" class="form-control" min="1" />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Unit Price *</label>
+                                    <InputNumber @bind-Value="item.UnitPrice" class="form-control" step="0.01" min="0" />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Subtotal</label>
+                                    <input type="text" class="form-control" value="@((item.Quantity * item.UnitPrice).ToString("C"))" readonly />
+                                </div>
+                                <div class="col-md-1">
+                                    @if (orderInput.Items.Count > 1)
+                                    {
+                                        <button type="button" class="btn btn-danger btn-sm w-100" @onclick="() => RemoveItem(index)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <button type="button" class="btn btn-secondary mb-4" @onclick="AddItem">
+                    <i class="bi bi-plus-circle"></i> Add Item
+                </button>
+
+                <hr />
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4>Total: <span class="text-success">@CalculateTotal().ToString("C")</span></h4>
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary me-2" @onclick="Cancel">Cancel</button>
+                        <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                <span>Creating...</span>
+                            }
+                            else
+                            {
+                                <i class="bi bi-check-circle"></i>
+                                <span> Create Order</span>
+                            }
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private CreateOrderInput orderInput = new()
+    {
+        Items = new() { new CreateOrderItemInput() }
+    };
+
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    private void AddItem()
+    {
+        orderInput.Items.Add(new CreateOrderItemInput());
+    }
+
+    private void RemoveItem(int index)
+    {
+        if (orderInput.Items.Count > 1)
+        {
+            orderInput.Items.RemoveAt(index);
+        }
+    }
+
+    private decimal CalculateTotal()
+    {
+        return orderInput.Items.Sum(i => i.Quantity * i.UnitPrice);
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/orders");
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            isSubmitting = true;
+            errorMessage = null;
+
+            if (string.IsNullOrWhiteSpace(orderInput.CustomerName))
+            {
+                errorMessage = "Customer name is required.";
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(orderInput.CustomerEmail))
+            {
+                errorMessage = "Customer email is required.";
+                return;
+            }
+
+            if (orderInput.Items.Any(i => string.IsNullOrWhiteSpace(i.ProductName)))
+            {
+                errorMessage = "All items must have a product name.";
+                return;
+            }
+
+            if (orderInput.Items.Any(i => i.Quantity <= 0))
+            {
+                errorMessage = "All items must have a quantity greater than 0.";
+                return;
+            }
+
+            if (orderInput.Items.Any(i => i.UnitPrice <= 0))
+            {
+                errorMessage = "All items must have a unit price greater than 0.";
+                return;
+            }
+
+            var order = await OrderService.CreateOrderAsync(orderInput);
+            Navigation.NavigateTo($"/orders/{order.Id}");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to create order: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}
