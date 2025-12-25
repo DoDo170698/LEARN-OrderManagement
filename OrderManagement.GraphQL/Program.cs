@@ -27,10 +27,10 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
     {
         policy.WithOrigins(
-                "http://localhost:5118",  // Blazor default
-                "https://localhost:7118",
-                "http://localhost:5000",   // GraphQL default
-                "https://localhost:7000"
+                "http://localhost:5101",  // Blazor HTTP
+                "https://localhost:7067", // Blazor HTTPS
+                "http://localhost:5118",  // GraphQL HTTP
+                "https://localhost:7178"  // GraphQL HTTPS
               )
               .AllowAnyHeader()
               .AllowAnyMethod()
@@ -95,7 +95,7 @@ app.MapGraphQL();
 Console.WriteLine("================================");
 Console.WriteLine("GraphQL Server Started");
 Console.WriteLine("================================");
-Console.WriteLine($"GraphQL Endpoint: http://localhost:5000/graphql");
+Console.WriteLine($"GraphQL Endpoint: http://localhost:5118/graphql");
 Console.WriteLine("");
 Console.WriteLine("Database: In-Memory");
 Console.WriteLine("Architecture: Clean Architecture + CQRS + MediatR");

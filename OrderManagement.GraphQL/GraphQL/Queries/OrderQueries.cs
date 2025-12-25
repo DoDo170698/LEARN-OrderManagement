@@ -15,15 +15,15 @@ namespace OrderManagement.GraphQL.GraphQL.Queries;
 public class OrderQueries
 {
     /// <summary>
-    /// Gets all orders with their items (with GraphQL projection support)
+    /// Gets all orders with their items
     /// </summary>
     [Authorize]
-    [UseProjection]
-    [UseFiltering]
-    [UseSorting]
-    public IQueryable<Order> GetOrders([Service] IUnitOfWork unitOfWork)
+    public async Task<IEnumerable<OrderDto>> GetOrdersAsync(
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
     {
-        return unitOfWork.Orders.GetOrdersWithItemsQueryable();
+        var query = new GetAllOrdersQuery();
+        return await mediator.Send(query, cancellationToken);
     }
 
     /// <summary>

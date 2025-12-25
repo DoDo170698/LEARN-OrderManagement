@@ -1,5 +1,5 @@
 using OrderManagement.Blazor.Components;
-using OrderManagement.Blazor.Services;
+using OrderManagement.Blazor.GraphQL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,16 +7,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Add HttpClient for GraphQL API
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri(builder.Configuration["GraphQL:Endpoint"]!)
-});
+// Add StrawberryShake GraphQL Client
+builder.Services
+    .AddOrderManagementClient()
+    .ConfigureHttpClient((sp, client) =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        var endpoint = config["GraphQL:Endpoint"]!;
+        var token = config["GraphQL:JwtToken"]!;
 
-// Add GraphQL Client and Order Service
-builder.Services.AddScoped<GraphQLClient>();
-builder.Services.AddScoped<OrderService>();
-builder.Services.AddScoped<OrderSubscriptionService>();
+        client.BaseAddress = new Uri(endpoint);
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    });
 
 var app = builder.Build();
 

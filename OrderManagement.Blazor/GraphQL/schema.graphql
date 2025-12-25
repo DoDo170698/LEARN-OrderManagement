@@ -1,2 +1,99 @@
-# This file will be generated from the backend GraphQL schema
-# For now, we'll create our client manually
+schema {
+  query: OrderQueries
+  mutation: Mutation
+  subscription: OrderSubscriptions
+}
+
+type Mutation {
+  createOrder(input: CreateOrderInput!): CreateOrderPayload!
+  updateOrder(input: UpdateOrderInput!): UpdateOrderPayload!
+  deleteOrder(id: UUID!): Boolean!
+}
+
+"Defines when a policy shall be executed."
+enum ApplyPolicy {
+  "Before the resolver was executed."
+  BEFORE_RESOLVER
+  "After the resolver was executed."
+  AFTER_RESOLVER
+  "The policy is applied in the validation step before the execution."
+  VALIDATION
+}
+
+type OrderQueries {
+  orders: [OrderDto!]!
+  orderById(id: UUID!): OrderDto!
+  ordersByStatus(status: OrderStatus!): [OrderDto!]!
+}
+
+type OrderSubscriptions {
+  onOrderCreated: OrderDto!
+  onOrderUpdated: OrderDto!
+}
+
+type CreateOrderPayload {
+  order: OrderDto!
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+scalar UUID
+
+type OrderDto {
+  id: UUID!
+  orderNumber: String!
+  customerName: String!
+  customerEmail: String!
+  status: OrderStatus!
+  totalAmount: Decimal!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  items: [OrderItemDto!]!
+}
+
+input CreateOrderInput {
+  customerName: String!
+  customerEmail: String!
+  items: [CreateOrderItemInput!]!
+}
+
+type UpdateOrderPayload {
+  order: OrderDto
+}
+
+input UpdateOrderInput {
+  id: UUID!
+  customerName: String
+  customerEmail: String
+  status: OrderStatus
+}
+
+input CreateOrderItemInput {
+  productName: String!
+  quantity: Int!
+  unitPrice: Decimal!
+}
+
+type OrderItemDto {
+  id: UUID!
+  orderId: UUID!
+  productName: String!
+  quantity: Int!
+  unitPrice: Decimal!
+  subtotal: Decimal!
+  createdAt: DateTime!
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+"The `Decimal` scalar type represents a decimal floating-point number."
+scalar Decimal
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION

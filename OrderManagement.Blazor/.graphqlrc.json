@@ -1,0 +1,21 @@
+{
+  "schema": "GraphQL/schema.graphql",
+  "documents": "GraphQL/**/*.graphql",
+  "extensions": {
+    "strawberryShake": {
+      "name": "OrderManagementClient",
+      "namespace": "OrderManagement.Blazor.GraphQL",
+      "url": "http://localhost:5118/graphql",
+      "dependencyInjection": true,
+      "records": {
+        "enabled": true
+      },
+      "transportProfiles": [
+        {
+          "default": "Http",
+          "subscription": "WebSocket"
+        }
+      ]
+    }
+  }
+}

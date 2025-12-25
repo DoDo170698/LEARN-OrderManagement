@@ -1,10 +1,8 @@
 @page "/orders"
-@using OrderManagement.Blazor.Services
-@inject OrderService OrderService
-@inject OrderSubscriptionService SubscriptionService
+@using OrderManagement.Blazor.GraphQL
+@inject IOrderManagementClient GraphQLClient
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
-@implements IAsyncDisposable
 
 <PageTitle>Orders</PageTitle>
 
@@ -87,15 +85,13 @@
 </div>
 
 @code {
-    private List<Order> orders = new();
+    private List<IGetOrders_Orders> orders = new();
     private bool isLoading = true;
     private string? errorMessage;
-    private bool realtimeEnabled = false;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadOrdersAsync();
-        await SetupRealtimeSubscriptionsAsync();
     }
 
     private async Task LoadOrdersAsync()
@@ -104,7 +100,17 @@
         {
             isLoading = true;
             errorMessage = null;
-            orders = await OrderService.GetAllOrdersAsync();
+
+            var result = await GraphQLClient.GetOrders.ExecuteAsync();
+
+            if (result.Data != null)
+            {
+                orders = result.Data.Orders?.ToList() ?? new();
+            }
+            else if (result.Errors?.Count > 0)
+            {
+                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
+            }
         }
         catch (Exception ex)
         {
@@ -116,67 +122,69 @@
         }
     }
 
-    private async Task SetupRealtimeSubscriptionsAsync()
-    {
-        try
-        {
-            // Subscribe to order created events
-            SubscriptionService.OnOrderCreated += async (order) =>
-            {
-                await InvokeAsync(() =>
-                {
-                    // Add new order to the list
-                    if (!orders.Any(o => o.Id == order.Id))
-                    {
-                        orders.Insert(0, order);
-                        StateHasChanged();
-                    }
-                });
-            };
+    // Disabled realtime subscriptions
+    // private async Task SetupRealtimeSubscriptionsAsync()
+    // {
+    //     try
+    //     {
+    //         // Subscribe to order created events
+    //         SubscriptionService.OnOrderCreated += async (order) =>
+    //         {
+    //             await InvokeAsync(() =>
+    //             {
+    //                 // Add new order to the list
+    //                 if (!orders.Any(o => o.Id == order.Id))
+    //                 {
+    //                     orders.Insert(0, order);
+    //                     StateHasChanged();
+    //                 }
+    //             });
+    //         };
+    //
+    //         // Subscribe to order updated events
+    //         SubscriptionService.OnOrderUpdated += async (order) =>
+    //         {
+    //             await InvokeAsync(() =>
+    //             {
+    //                 // Update existing order in the list
+    //                 var existingOrder = orders.FirstOrDefault(o => o.Id == order.Id);
+    //                 if (existingOrder != null)
+    //                 {
+    //                     var index = orders.IndexOf(existingOrder);
+    //                     orders[index] = order;
+    //                     StateHasChanged();
+    //                 }
+    //             });
+    //         };
+    //
+    //         await SubscriptionService.ConnectAsync();
+    //         await SubscriptionService.SubscribeToOrderCreatedAsync();
+    //         await SubscriptionService.SubscribeToOrderUpdatedAsync();
+    //
+    //         realtimeEnabled = true;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.WriteLine($"Realtime subscription setup failed: {ex.Message}");
+    //         // Continue without realtime updates
+    //     }
+    // }
 
-            // Subscribe to order updated events
-            SubscriptionService.OnOrderUpdated += async (order) =>
-            {
-                await InvokeAsync(() =>
-                {
-                    // Update existing order in the list
-                    var existingOrder = orders.FirstOrDefault(o => o.Id == order.Id);
-                    if (existingOrder != null)
-                    {
-                        var index = orders.IndexOf(existingOrder);
-                        orders[index] = order;
-                        StateHasChanged();
-                    }
-                });
-            };
-
-            await SubscriptionService.ConnectAsync();
-            await SubscriptionService.SubscribeToOrderCreatedAsync();
-            await SubscriptionService.SubscribeToOrderUpdatedAsync();
-
-            realtimeEnabled = true;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Realtime subscription setup failed: {ex.Message}");
-            // Continue without realtime updates
-        }
-    }
-
-    private string GetStatusBadgeClass(OrderStatus status)
+    private string GetStatusBadgeClass(OrderManagement.Blazor.GraphQL.OrderStatus status)
     {
         return status switch
         {
-            OrderStatus.Pending => "bg-warning text-dark",
-            OrderStatus.Processing => "bg-info",
-            OrderStatus.Completed => "bg-success",
-            OrderStatus.Cancelled => "bg-danger",
+            OrderManagement.Blazor.GraphQL.OrderStatus.Pending => "bg-warning text-dark",
+            OrderManagement.Blazor.GraphQL.OrderStatus.Processing => "bg-info",
+            OrderManagement.Blazor.GraphQL.OrderStatus.Completed => "bg-success",
+            OrderManagement.Blazor.GraphQL.OrderStatus.Cancelled => "bg-danger",
             _ => "bg-secondary"
         };
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        await SubscriptionService.DisposeAsync();
-    }
+    // Disable realtime subscriptions for now
+    // public async ValueTask DisposeAsync()
+    // {
+    //     await SubscriptionService.DisposeAsync();
+    // }
 }
