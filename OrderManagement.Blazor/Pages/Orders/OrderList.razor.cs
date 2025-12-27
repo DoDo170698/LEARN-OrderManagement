@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Components;
 using OrderManagement.Blazor.GraphQL;
 using OrderManagement.Blazor.ViewModels;
+using OrderManagement.Blazor.Resources.Pages.Orders;
 
 namespace OrderManagement.Blazor.Pages.Orders;
 
@@ -99,7 +100,7 @@ public partial class OrderList : IDisposable
         }
         catch (Exception ex)
         {
-            errorMessage = $"Failed to load orders: {ex.Message}";
+            errorMessage = string.Format(OrderListResources.FailedToLoadOrders, ex.Message);
         }
         finally
         {
@@ -377,13 +378,13 @@ public partial class OrderList : IDisposable
             }
             else
             {
-                errorMessage = "Failed to delete order.";
+                errorMessage = OrderListResources.FailedToDeleteOrderGeneric;
                 showDeleteConfirmation = false;
             }
         }
         catch (Exception ex)
         {
-            errorMessage = $"Failed to delete order: {ex.Message}";
+            errorMessage = string.Format(OrderListResources.FailedToDeleteOrder, ex.Message);
             showDeleteConfirmation = false;
         }
         finally

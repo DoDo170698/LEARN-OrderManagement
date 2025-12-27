@@ -1,20 +1,19 @@
 @page "/orders/create"
-@inject IOrderManagementClient GraphQLClient
-@inject NavigationManager Navigation
+@using OrderManagement.Blazor.Resources.Pages.Orders
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<PageTitle>Create Order</PageTitle>
+<PageTitle>@CreateOrderResources.PageTitle</PageTitle>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="mb-1">
-                <i class="bi bi-plus-circle"></i> Create New Order
+                <i class="bi bi-plus-circle"></i> @CreateOrderResources.CreateNewOrder
             </h1>
         </div>
         <div>
             <a href="/orders" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to List
+                <i class="bi bi-arrow-left"></i> @CreateOrderResources.BackToList
             </a>
         </div>
     </div>
@@ -22,7 +21,7 @@
     @if (errorMessage != null)
     {
         <div class="alert alert-danger shadow-sm" role="alert">
-            <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Error</h5>
+            <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>@CreateOrderResources.Error</h5>
             <p class="mb-0">@errorMessage</p>
         </div>
     }
@@ -30,7 +29,7 @@
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
             <h5 class="mb-0">
-                <i class="bi bi-plus-circle me-2"></i>New Order
+                <i class="bi bi-plus-circle me-2"></i>@CreateOrderResources.NewOrder
             </h5>
         </div>
         <div class="card-body">
@@ -41,29 +40,29 @@
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <h6 class="text-muted text-uppercase mb-3">
-                            <i class="bi bi-person-circle me-2"></i>Customer Information
+                            <i class="bi bi-person-circle me-2"></i>@CreateOrderResources.CustomerInformation
                         </h6>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Customer Name <span class="text-danger">*</span></label>
-                            <InputText @bind-Value="orderInput.CustomerName" class="form-control" placeholder="Enter customer name" />
+                            <label class="form-label fw-semibold">@CreateOrderResources.CustomerName <span class="text-danger">*</span></label>
+                            <InputText @bind-Value="orderInput.CustomerName" class="form-control" placeholder="@CreateOrderResources.CustomerNamePlaceholder" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Customer Email <span class="text-danger">*</span></label>
-                            <InputText @bind-Value="orderInput.CustomerEmail" class="form-control" type="email" placeholder="customer@example.com" />
+                            <label class="form-label fw-semibold">@CreateOrderResources.CustomerEmail <span class="text-danger">*</span></label>
+                            <InputText @bind-Value="orderInput.CustomerEmail" class="form-control" type="email" placeholder="@CreateOrderResources.CustomerEmailPlaceholder" />
                         </div>
                     </div>
 
                     <div class="col-md-6">
                         <h6 class="text-muted text-uppercase mb-3">
-                            <i class="bi bi-info-circle me-2"></i>Order Information
+                            <i class="bi bi-info-circle me-2"></i>@CreateOrderResources.OrderInformation
                         </h6>
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-1"></i>
-                            <small>Status will be set to <strong>Pending</strong> automatically</small>
+                            <small>@((MarkupString)CreateOrderResources.StatusPendingInfo)</small>
                         </div>
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-1"></i>
-                            <small>Add at least one item to the order</small>
+                            <small>@CreateOrderResources.AddItemsInfo</small>
                         </div>
                     </div>
                 </div>
@@ -74,10 +73,10 @@
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="text-muted text-uppercase mb-0">
-                            <i class="bi bi-box-seam me-2"></i>Order Items
+                            <i class="bi bi-box-seam me-2"></i>@CreateOrderResources.OrderItems
                         </h6>
                         <button type="button" class="btn btn-sm btn-primary" @onclick="AddItem">
-                            <i class="bi bi-plus-circle me-1"></i>Add Item
+                            <i class="bi bi-plus-circle me-1"></i>@CreateOrderResources.AddItem
                         </button>
                     </div>
 
@@ -87,19 +86,19 @@
                             <div class="card-body">
                                 <div class="row align-items-end">
                                     <div class="col-md-4">
-                                        <label class="form-label fw-semibold small">Product Name <span class="text-danger">*</span></label>
-                                        <InputText @bind-Value="item.ProductName" class="form-control" placeholder="Product name" />
+                                        <label class="form-label fw-semibold small">@CreateOrderResources.ProductName <span class="text-danger">*</span></label>
+                                        <InputText @bind-Value="item.ProductName" class="form-control" placeholder="@CreateOrderResources.ProductNamePlaceholder" />
                                     </div>
                                     <div class="col-md-2">
-                                        <label class="form-label fw-semibold small">Quantity <span class="text-danger">*</span></label>
+                                        <label class="form-label fw-semibold small">@CreateOrderResources.Quantity <span class="text-danger">*</span></label>
                                         <InputNumber @bind-Value="item.Quantity" class="form-control" min="1" />
                                     </div>
                                     <div class="col-md-3">
-                                        <label class="form-label fw-semibold small">Unit Price <span class="text-danger">*</span></label>
+                                        <label class="form-label fw-semibold small">@CreateOrderResources.UnitPrice <span class="text-danger">*</span></label>
                                         <InputNumber @bind-Value="item.UnitPrice" class="form-control" step="0.01" min="0" />
                                     </div>
                                     <div class="col-md-2">
-                                        <label class="form-label fw-semibold small">Subtotal</label>
+                                        <label class="form-label fw-semibold small">@CreateOrderResources.Subtotal</label>
                                         <div class="d-flex align-items-center h-100">
                                             <span class="text-primary fs-5">@($"${(item.Quantity * item.UnitPrice):N2}")</span>
                                         </div>
@@ -107,7 +106,7 @@
                                     <div class="col-md-1">
                                         @if (orderInput.Items.Count > 1)
                                         {
-                                            <button type="button" class="btn btn-danger btn-sm w-100" @onclick="() => RemoveItem(index)" title="Remove item">
+                                            <button type="button" class="btn btn-danger btn-sm w-100" @onclick="() => RemoveItem(index)" title="@CreateOrderResources.RemoveItem">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         }
@@ -124,25 +123,25 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h5 class="mb-0">
-                            <i class="bi bi-calculator me-2"></i>Total:
+                            <i class="bi bi-calculator me-2"></i>@CreateOrderResources.Total
                             <span class="text-success ms-2">@($"${CalculateTotal():N2}")</span>
                         </h5>
-                        <small class="text-muted">@orderInput.Items.Count item(s)</small>
+                        <small class="text-muted">@string.Format(CreateOrderResources.Items, orderInput.Items.Count)</small>
                     </div>
                     <div>
                         <button type="button" class="btn btn-outline-secondary me-2" @onclick="Cancel">
-                            <i class="bi bi-x-circle me-1"></i>Cancel
+                            <i class="bi bi-x-circle me-1"></i>@CreateOrderResources.Cancel
                         </button>
                         <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
                             @if (isSubmitting)
                             {
                                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                <span>Creating...</span>
+                                <span>@CreateOrderResources.Creating</span>
                             }
                             else
                             {
                                 <i class="bi bi-check-circle me-1"></i>
-                                <span>Create Order</span>
+                                <span>@CreateOrderResources.CreateOrderButton</span>
                             }
                         </button>
                     </div>
@@ -151,123 +150,3 @@
         </div>
     </div>
 </div>
-
-@code {
-    private OrderInput orderInput = new()
-    {
-        Items = new() { new OrderItemInput() }
-    };
-
-    private bool isSubmitting = false;
-    private string? errorMessage;
-
-    private void AddItem()
-    {
-        orderInput.Items.Add(new OrderItemInput());
-    }
-
-    private void RemoveItem(int index)
-    {
-        if (orderInput.Items.Count > 1)
-        {
-            orderInput.Items.RemoveAt(index);
-        }
-    }
-
-    private decimal CalculateTotal()
-    {
-        return orderInput.Items.Sum(i => i.Quantity * i.UnitPrice);
-    }
-
-    private void Cancel()
-    {
-        Navigation.NavigateTo("/orders");
-    }
-
-    private async Task HandleSubmit()
-    {
-        try
-        {
-            isSubmitting = true;
-            errorMessage = null;
-
-            if (string.IsNullOrWhiteSpace(orderInput.CustomerName))
-            {
-                errorMessage = "Customer name is required.";
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(orderInput.CustomerEmail))
-            {
-                errorMessage = "Customer email is required.";
-                return;
-            }
-
-            if (orderInput.Items.Any(i => string.IsNullOrWhiteSpace(i.ProductName)))
-            {
-                errorMessage = "All items must have a product name.";
-                return;
-            }
-
-            if (orderInput.Items.Any(i => i.Quantity <= 0))
-            {
-                errorMessage = "All items must have a quantity greater than 0.";
-                return;
-            }
-
-            if (orderInput.Items.Any(i => i.UnitPrice <= 0))
-            {
-                errorMessage = "All items must have a unit price greater than 0.";
-                return;
-            }
-
-            // Map to GraphQL input
-            var input = new CreateOrderInput
-            {
-                CustomerName = orderInput.CustomerName,
-                CustomerEmail = orderInput.CustomerEmail,
-                Items = orderInput.Items.Select(i => new CreateOrderItemInput
-                {
-                    ProductName = i.ProductName,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice
-                }).ToList()
-            };
-
-            var result = await GraphQLClient.CreateOrder.ExecuteAsync(input);
-
-            if (result.Data?.CreateOrder?.Order != null)
-            {
-                var orderId = result.Data.CreateOrder.Order.Id;
-                Navigation.NavigateTo($"/orders/{orderId}");
-            }
-            else if (result.Errors?.Count > 0)
-            {
-                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Failed to create order: {ex.Message}";
-        }
-        finally
-        {
-            isSubmitting = false;
-        }
-    }
-
-    // Local input models for form binding
-    public class OrderInput
-    {
-        public string CustomerName { get; set; } = string.Empty;
-        public string CustomerEmail { get; set; } = string.Empty;
-        public List<OrderItemInput> Items { get; set; } = new();
-    }
-
-    public class OrderItemInput
-    {
-        public string ProductName { get; set; } = string.Empty;
-        public int Quantity { get; set; } = 1;
-        public decimal UnitPrice { get; set; } = 0;
-    }
-}

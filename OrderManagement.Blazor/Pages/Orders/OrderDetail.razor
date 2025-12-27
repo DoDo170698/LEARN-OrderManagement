@@ -1,16 +1,15 @@
 @page "/orders/{id:guid}"
 @using OrderManagement.Blazor.GraphQL
-@inject IOrderManagementClient GraphQLClient
-@inject NavigationManager Navigation
+@using OrderManagement.Blazor.Resources.Pages.Orders
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<PageTitle>Order Details</PageTitle>
+<PageTitle>@OrderDetailResources.PageTitle</PageTitle>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="mb-1">
-                <i class="bi bi-receipt"></i> Order Details
+                <i class="bi bi-receipt"></i> @OrderDetailResources.OrderDetails
             </h1>
             @if (order != null)
             {
@@ -21,15 +20,15 @@
         </div>
         <div>
             <a href="/orders" class="btn btn-outline-secondary me-2">
-                <i class="bi bi-arrow-left"></i> Back
+                <i class="bi bi-arrow-left"></i> @OrderDetailResources.Back
             </a>
             @if (order != null)
             {
                 <a href="/orders/@Id/edit" class="btn btn-warning me-2">
-                    <i class="bi bi-pencil"></i> Edit Order
+                    <i class="bi bi-pencil"></i> @OrderDetailResources.EditOrder
                 </a>
                 <button class="btn btn-danger" @onclick="ShowDeleteConfirmation">
-                    <i class="bi bi-trash"></i> Delete Order
+                    <i class="bi bi-trash"></i> @OrderDetailResources.DeleteOrder
                 </button>
             }
         </div>
@@ -39,23 +38,23 @@
     {
         <div class="text-center my-5">
             <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">@OrderDetailResources.Loading</span>
             </div>
-            <p class="mt-3 text-muted">Loading order details...</p>
+            <p class="mt-3 text-muted">@OrderDetailResources.LoadingOrderDetails</p>
         </div>
     }
     else if (errorMessage != null)
     {
         <div class="alert alert-danger shadow-sm" role="alert">
-            <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Error</h5>
+            <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>@OrderDetailResources.Error</h5>
             <p class="mb-0">@errorMessage</p>
         </div>
     }
     else if (order == null)
     {
         <div class="alert alert-warning shadow-sm" role="alert">
-            <h5><i class="bi bi-info-circle-fill me-2"></i>Not Found</h5>
-            <p class="mb-0">The requested order could not be found.</p>
+            <h5><i class="bi bi-info-circle-fill me-2"></i>@OrderDetailResources.NotFound</h5>
+            <p class="mb-0">@OrderDetailResources.OrderNotFound</p>
         </div>
     }
     else
@@ -65,7 +64,7 @@
             <div class="card-header bg-primary text-white">
                 <div class="d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
-                        <i class="bi bi-file-earmark-text me-2"></i>Order Summary
+                        <i class="bi bi-file-earmark-text me-2"></i>@OrderDetailResources.OrderSummary
                     </h5>
                     <span class="badge @GetStatusBadgeClass(order.Status) fs-6">
                         @order.Status
@@ -77,14 +76,14 @@
                     <!-- Customer Information -->
                     <div class="col-md-6">
                         <h6 class="text-muted text-uppercase mb-3">
-                            <i class="bi bi-person-circle me-2"></i>Customer Information
+                            <i class="bi bi-person-circle me-2"></i>@OrderDetailResources.CustomerInformation
                         </h6>
                         <div class="mb-3">
-                            <label class="text-muted small mb-1">Name</label>
+                            <label class="text-muted small mb-1">@OrderDetailResources.Name</label>
                             <div class="fw-semibold">@order.CustomerName</div>
                         </div>
                         <div class="mb-3">
-                            <label class="text-muted small mb-1">Email</label>
+                            <label class="text-muted small mb-1">@OrderDetailResources.Email</label>
                             <div>
                                 <i class="bi bi-envelope me-1"></i>
                                 <a href="mailto:@order.CustomerEmail">@order.CustomerEmail</a>
@@ -95,17 +94,17 @@
                     <!-- Order Metadata -->
                     <div class="col-md-6">
                         <h6 class="text-muted text-uppercase mb-3">
-                            <i class="bi bi-clock-history me-2"></i>Order Timeline
+                            <i class="bi bi-clock-history me-2"></i>@OrderDetailResources.OrderTimeline
                         </h6>
                         <div class="mb-3">
-                            <label class="text-muted small mb-1">Created</label>
+                            <label class="text-muted small mb-1">@OrderDetailResources.Created</label>
                             <div>
                                 <i class="bi bi-calendar-plus me-1"></i>
                                 @order.CreatedAt.ToString("MMM dd, yyyy 'at' HH:mm")
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="text-muted small mb-1">Last Updated</label>
+                            <label class="text-muted small mb-1">@OrderDetailResources.LastUpdated</label>
                             <div>
                                 <i class="bi bi-calendar-check me-1"></i>
                                 @order.UpdatedAt.ToString("MMM dd, yyyy 'at' HH:mm")
@@ -120,7 +119,7 @@
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-light">
                 <h5 class="mb-0">
-                    <i class="bi bi-box-seam me-2"></i>Order Items
+                    <i class="bi bi-box-seam me-2"></i>@OrderDetailResources.OrderItems
                     <span class="badge bg-secondary ms-2">@order.Items.Count</span>
                 </h5>
             </div>
@@ -129,7 +128,7 @@
                 {
                     <div class="p-4 text-center text-muted">
                         <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                        <p class="mb-0">No items in this order.</p>
+                        <p class="mb-0">@OrderDetailResources.NoItems</p>
                     </div>
                 }
                 else
@@ -139,16 +138,16 @@
                             <thead class="table-light">
                                 <tr>
                                     <th class="border-0">
-                                        <i class="bi bi-box me-2"></i>Product
+                                        <i class="bi bi-box me-2"></i>@OrderDetailResources.Product
                                     </th>
                                     <th class="border-0 text-center">
-                                        <i class="bi bi-hash me-2"></i>Quantity
+                                        <i class="bi bi-hash me-2"></i>@OrderDetailResources.Quantity
                                     </th>
                                     <th class="border-0 text-end">
-                                        <i class="bi bi-currency-dollar me-2"></i>Unit Price
+                                        <i class="bi bi-currency-dollar me-2"></i>@OrderDetailResources.UnitPrice
                                     </th>
                                     <th class="border-0 text-end">
-                                        <i class="bi bi-calculator me-2"></i>Subtotal
+                                        <i class="bi bi-calculator me-2"></i>@OrderDetailResources.Subtotal
                                     </th>
                                 </tr>
                             </thead>
@@ -177,7 +176,7 @@
                             <tfoot class="table-light border-top border-2">
                                 <tr>
                                     <td colspan="3" class="text-end fw-bold fs-5">
-                                        <i class="bi bi-calculator-fill me-2"></i>Order Total:
+                                        <i class="bi bi-calculator-fill me-2"></i>@OrderDetailResources.OrderTotal
                                     </td>
                                     <td class="text-end">
                                         <span class="badge bg-success fs-5 px-3 py-2">
@@ -202,35 +201,35 @@
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">
                         <h5 class="modal-title">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Delete
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>@OrderDetailResources.ConfirmDelete
                         </h5>
                         <button type="button" class="btn-close btn-close-white" @onclick="CancelDelete"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="mb-2"><strong>Are you sure you want to delete this order?</strong></p>
+                        <p class="mb-2"><strong>@OrderDetailResources.DeleteConfirmMessage</strong></p>
                         @if (order != null)
                         {
                             <p class="text-muted mb-0">
-                                Order Number: <strong>@order.OrderNumber</strong><br />
-                                Customer: <strong>@order.CustomerName</strong><br />
-                                This action cannot be undone.
+                                @OrderDetailResources.OrderNumber <strong>@order.OrderNumber</strong><br />
+                                @OrderDetailResources.Customer <strong>@order.CustomerName</strong><br />
+                                @OrderDetailResources.DeleteWarning
                             </p>
                         }
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" @onclick="CancelDelete">
-                            <i class="bi bi-x-circle me-1"></i>Cancel
+                            <i class="bi bi-x-circle me-1"></i>@OrderDetailResources.Cancel
                         </button>
                         <button type="button" class="btn btn-danger" @onclick="ConfirmDelete" disabled="@isDeleting">
                             @if (isDeleting)
                             {
                                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                <span>Deleting...</span>
+                                <span>@OrderDetailResources.Deleting</span>
                             }
                             else
                             {
                                 <i class="bi bi-trash me-1"></i>
-                                <span>Delete Order</span>
+                                <span>@OrderDetailResources.DeleteOrder</span>
                             }
                         </button>
                     </div>
@@ -239,114 +238,3 @@
         </div>
     }
 </div>
-
-@code {
-    [Parameter]
-    public Guid Id { get; set; }
-
-    private IGetOrderDetails_OrderById? order;
-    private bool isLoading = true;
-    private string? errorMessage;
-    private bool showDeleteConfirmation = false;
-    private bool isDeleting = false;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadOrderAsync();
-    }
-
-    private async Task LoadOrderAsync()
-    {
-        try
-        {
-            isLoading = true;
-            errorMessage = null;
-
-            var result = await GraphQLClient.GetOrderDetails.ExecuteAsync(Id);
-
-            if (result.Data?.OrderById != null)
-            {
-                order = result.Data.OrderById;
-            }
-            else if (result.Errors?.Count > 0)
-            {
-                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
-            }
-            else
-            {
-                errorMessage = "Order not found.";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Failed to load order: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
-
-    private async Task RefreshAsync()
-    {
-        await LoadOrderAsync();
-    }
-
-    private string GetStatusBadgeClass(OrderStatus status)
-    {
-        return status switch
-        {
-            OrderStatus.Pending => "bg-warning text-dark",
-            OrderStatus.Processing => "bg-info text-white",
-            OrderStatus.Completed => "bg-success text-white",
-            OrderStatus.Cancelled => "bg-danger text-white",
-            _ => "bg-secondary text-white"
-        };
-    }
-
-    private void ShowDeleteConfirmation()
-    {
-        showDeleteConfirmation = true;
-    }
-
-    private void CancelDelete()
-    {
-        showDeleteConfirmation = false;
-    }
-
-    private async Task ConfirmDelete()
-    {
-        try
-        {
-            isDeleting = true;
-            errorMessage = null;
-
-            var result = await GraphQLClient.DeleteOrder.ExecuteAsync(Id);
-
-            if (result.Data?.DeleteOrder == true)
-            {
-                // Navigate back to orders list after successful delete
-                Navigation.NavigateTo("/orders");
-            }
-            else if (result.Errors?.Count > 0)
-            {
-                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
-                showDeleteConfirmation = false;
-            }
-            else
-            {
-                errorMessage = "Failed to delete order.";
-                showDeleteConfirmation = false;
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Failed to delete order: {ex.Message}";
-            showDeleteConfirmation = false;
-        }
-        finally
-        {
-            isDeleting = false;
-        }
-    }
-}

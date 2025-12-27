@@ -1,21 +1,22 @@
 @page "/orders"
 @using OrderManagement.Blazor.ViewModels
+@using OrderManagement.Blazor.Resources.Pages.Orders
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
-<PageTitle>Orders</PageTitle>
+<PageTitle>@OrderListResources.PageTitle</PageTitle>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Orders</h1>
+        <h1>@OrderListResources.Title</h1>
         <div>
             @if (subscriptionsActive)
             {
                 <span class="badge bg-success me-2">
-                    <i class="bi bi-broadcast"></i> Live Updates Active
+                    <i class="bi bi-broadcast"></i> @OrderListResources.LiveUpdatesActive
                 </span>
             }
             <a href="/orders/create" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> New Order
+                <i class="bi bi-plus-circle"></i> @OrderListResources.NewOrder
             </a>
         </div>
     </div>
@@ -23,36 +24,36 @@
     <!-- Filter & Search Section -->
     <div class="card shadow-sm mb-4">
         <div class="card-header bg-light">
-            <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Filter & Search</h6>
+            <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>@OrderListResources.FilterAndSearch</h6>
         </div>
         <div class="card-body">
             <div class="row g-3 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label fw-semibold small text-muted mb-1">
-                        <i class="bi bi-search me-1"></i>SEARCH
+                        <i class="bi bi-search me-1"></i>@OrderListResources.Search
                     </label>
                     <input type="text" class="form-control" @bind="searchText" @bind:event="oninput"
-                           placeholder="Order number, customer name, or email...">
+                           placeholder="@OrderListResources.SearchPlaceholder">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label fw-semibold small text-muted mb-1">
-                        <i class="bi bi-flag me-1"></i>STATUS
+                        <i class="bi bi-flag me-1"></i>@OrderListResources.Status
                     </label>
                     <select class="form-select" @bind="filterStatus">
-                        <option value="">All Statuses</option>
-                        <option value="@OrderStatus.Pending">Pending</option>
-                        <option value="@OrderStatus.Processing">Processing</option>
-                        <option value="@OrderStatus.Completed">Completed</option>
-                        <option value="@OrderStatus.Cancelled">Cancelled</option>
+                        <option value="">@OrderListResources.AllStatuses</option>
+                        <option value="@OrderStatus.Pending">@OrderListResources.Pending</option>
+                        <option value="@OrderStatus.Processing">@OrderListResources.Processing</option>
+                        <option value="@OrderStatus.Completed">@OrderListResources.Completed</option>
+                        <option value="@OrderStatus.Cancelled">@OrderListResources.Cancelled</option>
                     </select>
                 </div>
                 <div class="col-md-4">
                     <div class="d-flex gap-2">
                         <button class="btn btn-primary flex-fill" @onclick="ApplyFiltersAsync">
-                            <i class="bi bi-check-circle me-1"></i>Apply
+                            <i class="bi bi-check-circle me-1"></i>@OrderListResources.Apply
                         </button>
                         <button class="btn btn-outline-secondary flex-fill" @onclick="ClearFiltersAsync">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>@OrderListResources.Reset
                         </button>
                     </div>
                 </div>
@@ -64,9 +65,9 @@
     {
         <div class="text-center my-5">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+                <span class="visually-hidden">@OrderListResources.Loading</span>
             </div>
-            <p class="mt-2">Loading orders...</p>
+            <p class="mt-2">@OrderListResources.LoadingOrders</p>
         </div>
     }
     else if (errorMessage != null)
@@ -78,7 +79,7 @@
     else if (!orders.Any())
     {
         <div class="alert alert-info" role="alert">
-            <i class="bi bi-info-circle"></i> No orders found. Create your first order!
+            <i class="bi bi-info-circle"></i> @OrderListResources.NoOrdersFound
         </div>
     }
     else
@@ -92,7 +93,7 @@
                             <tr>
                                 <th class="border-0" style="cursor: pointer;" @onclick='() => SortByAsync("ORDER_NUMBER")'>
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-hash me-2"></i>Order Number
+                                        <i class="bi bi-hash me-2"></i>@OrderListResources.OrderNumber
                                         @if (sortField == "ORDER_NUMBER")
                                         {
                                             <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
@@ -101,7 +102,7 @@
                                 </th>
                                 <th class="border-0" style="cursor: pointer;" @onclick='() => SortByAsync("CUSTOMER_NAME")'>
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-person me-2"></i>Customer
+                                        <i class="bi bi-person me-2"></i>@OrderListResources.Customer
                                         @if (sortField == "CUSTOMER_NAME")
                                         {
                                             <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
@@ -110,7 +111,7 @@
                                 </th>
                                 <th class="border-0" style="cursor: pointer;" @onclick='() => SortByAsync("CUSTOMER_EMAIL")'>
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-envelope me-2"></i>Email
+                                        <i class="bi bi-envelope me-2"></i>@OrderListResources.Email
                                         @if (sortField == "CUSTOMER_EMAIL")
                                         {
                                             <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
@@ -119,7 +120,7 @@
                                 </th>
                                 <th class="border-0" style="cursor: pointer;" @onclick='() => SortByAsync("STATUS")'>
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-flag me-2"></i>Status
+                                        <i class="bi bi-flag me-2"></i>@OrderListResources.Status
                                         @if (sortField == "STATUS")
                                         {
                                             <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
@@ -128,7 +129,7 @@
                                 </th>
                                 <th class="border-0" style="cursor: pointer;" @onclick='() => SortByAsync("CREATED_AT")'>
                                     <div class="d-flex align-items-center">
-                                        <i class="bi bi-calendar me-2"></i>Created
+                                        <i class="bi bi-calendar me-2"></i>@OrderListResources.Created
                                         @if (sortField == "CREATED_AT")
                                         {
                                             <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
@@ -136,7 +137,7 @@
                                     </div>
                                 </th>
                                 <th class="border-0 text-center">
-                                    <i class="bi bi-gear"></i> Actions
+                                    <i class="bi bi-gear"></i> @OrderListResources.Actions
                                 </th>
                             </tr>
                         </thead>
@@ -163,13 +164,13 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm" role="group">
-                                            <a href="/orders/@order.Id" class="btn btn-outline-info" title="View Details">
+                                            <a href="/orders/@order.Id" class="btn btn-outline-info" title="@OrderListResources.ViewDetails">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <a href="/orders/@order.Id/edit" class="btn btn-outline-warning" title="Edit Order">
+                                            <a href="/orders/@order.Id/edit" class="btn btn-outline-warning" title="@OrderListResources.EditOrder">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <button type="button" class="btn btn-outline-danger" title="Delete Order" @onclick="() => ShowDeleteConfirmation(order.Id, order.OrderNumber, order.CustomerName)">
+                                            <button type="button" class="btn btn-outline-danger" title="@OrderListResources.DeleteOrder" @onclick="() => ShowDeleteConfirmation(order.Id, order.OrderNumber, order.CustomerName)">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
@@ -187,34 +188,34 @@
                     <div class="col-md-4">
                         <div class="text-muted small">
                             <i class="bi bi-list-ul me-1"></i>
-                            Showing <strong>@orders.Count</strong> of <strong>@totalCount</strong> orders
+                            @string.Format(OrderListResources.ShowingXofY, orders.Count, totalCount)
                         </div>
                     </div>
                     <div class="col-md-4 text-center">
                         <nav>
                             <ul class="pagination pagination-sm mb-0 justify-content-center">
                                 <li class="page-item @(!hasPreviousPage ? "disabled" : "")">
-                                    <button class="page-link" @onclick="FirstPageAsync" disabled="@(!hasPreviousPage)" title="First Page">
+                                    <button class="page-link" @onclick="FirstPageAsync" disabled="@(!hasPreviousPage)" title="@OrderListResources.FirstPage">
                                         <i class="bi bi-chevron-bar-left"></i>
                                     </button>
                                 </li>
                                 <li class="page-item @(!hasPreviousPage ? "disabled" : "")">
-                                    <button class="page-link" @onclick="PreviousPageAsync" disabled="@(!hasPreviousPage)" title="Previous Page">
+                                    <button class="page-link" @onclick="PreviousPageAsync" disabled="@(!hasPreviousPage)" title="@OrderListResources.PreviousPage">
                                         <i class="bi bi-chevron-left"></i>
                                     </button>
                                 </li>
                                 <li class="page-item active">
                                     <span class="page-link">
-                                        <strong>Page @currentPageNumber</strong>
+                                        <strong>@string.Format(OrderListResources.Page, currentPageNumber)</strong>
                                     </span>
                                 </li>
                                 <li class="page-item @(!hasNextPage ? "disabled" : "")">
-                                    <button class="page-link" @onclick="NextPageAsync" disabled="@(!hasNextPage)" title="Next Page">
+                                    <button class="page-link" @onclick="NextPageAsync" disabled="@(!hasNextPage)" title="@OrderListResources.NextPage">
                                         <i class="bi bi-chevron-right"></i>
                                     </button>
                                 </li>
                                 <li class="page-item @(!hasNextPage ? "disabled" : "")">
-                                    <button class="page-link" @onclick="LastPageAsync" disabled="@(!hasNextPage)" title="Last Page">
+                                    <button class="page-link" @onclick="LastPageAsync" disabled="@(!hasNextPage)" title="@OrderListResources.LastPage">
                                         <i class="bi bi-chevron-bar-right"></i>
                                     </button>
                                 </li>
@@ -224,7 +225,7 @@
                     <div class="col-md-4">
                         <div class="d-flex align-items-center justify-content-end gap-2">
                             <label class="form-label mb-0 text-muted small">
-                                <i class="bi bi-grid-3x3-gap me-1"></i>Per page:
+                                <i class="bi bi-grid-3x3-gap me-1"></i>@OrderListResources.PerPage
                             </label>
                             <select class="form-select form-select-sm" style="width: auto;" @bind="pageSize" @bind:after="ApplyFiltersAsync">
                                 <option value="5">5</option>
@@ -247,32 +248,32 @@
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">
                         <h5 class="modal-title">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Delete
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>@OrderListResources.ConfirmDelete
                         </h5>
                         <button type="button" class="btn-close btn-close-white" @onclick="CancelDelete"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="mb-2"><strong>Are you sure you want to delete this order?</strong></p>
+                        <p class="mb-2"><strong>@OrderListResources.DeleteConfirmMessage</strong></p>
                         <p class="text-muted mb-0">
-                            Order Number: <strong>@deleteOrderNumber</strong><br />
-                            Customer: <strong>@deleteCustomerName</strong><br />
-                            This action cannot be undone.
+                            @OrderListResources.OrderNumber <strong>@deleteOrderNumber</strong><br />
+                            @OrderListResources.Customer <strong>@deleteCustomerName</strong><br />
+                            @OrderListResources.DeleteWarning
                         </p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" @onclick="CancelDelete">
-                            <i class="bi bi-x-circle me-1"></i>Cancel
+                            <i class="bi bi-x-circle me-1"></i>@OrderListResources.Cancel
                         </button>
                         <button type="button" class="btn btn-danger" @onclick="ConfirmDelete" disabled="@isDeleting">
                             @if (isDeleting)
                             {
                                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                <span>Deleting...</span>
+                                <span>@OrderListResources.Deleting</span>
                             }
                             else
                             {
                                 <i class="bi bi-trash me-1"></i>
-                                <span>Delete Order</span>
+                                <span>@OrderListResources.DeleteOrder</span>
                             }
                         </button>
                     </div>

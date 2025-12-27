@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Page Title -->
+  <data name="PageTitle" xml:space="preserve">
+    <value>Edit Order</value>
+  </data>
+
+  <!-- Header -->
+  <data name="EditOrderTitle" xml:space="preserve">
+    <value>Edit Order</value>
+  </data>
+  <data name="BackToDetails" xml:space="preserve">
+    <value>Back to Details</value>
+  </data>
+
+  <!-- Loading & Error States -->
+  <data name="Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="LoadingOrder" xml:space="preserve">
+    <value>Loading order...</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="NotFound" xml:space="preserve">
+    <value>Not Found</value>
+  </data>
+  <data name="OrderNotFound" xml:space="preserve">
+    <value>Order not found.</value>
+  </data>
+
+  <!-- Form Sections -->
+  <data name="EditingOrder" xml:space="preserve">
+    <value>Editing Order {0}</value>
+  </data>
+  <data name="CustomerInformation" xml:space="preserve">
+    <value>Customer Information</value>
+  </data>
+  <data name="CustomerName" xml:space="preserve">
+    <value>Customer Name</value>
+  </data>
+  <data name="CustomerNamePlaceholder" xml:space="preserve">
+    <value>Enter customer name</value>
+  </data>
+  <data name="CustomerEmail" xml:space="preserve">
+    <value>Customer Email</value>
+  </data>
+  <data name="CustomerEmailPlaceholder" xml:space="preserve">
+    <value>customer@example.com</value>
+  </data>
+
+  <!-- Order Status -->
+  <data name="OrderStatus" xml:space="preserve">
+    <value>Order Status</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>Processing</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="UpdateInfo" xml:space="preserve">
+    <value>You can update customer info, status, and order items</value>
+  </data>
+
+  <!-- Order Items -->
+  <data name="OrderItems" xml:space="preserve">
+    <value>Order Items</value>
+  </data>
+  <data name="AddItem" xml:space="preserve">
+    <value>Add Item</value>
+  </data>
+  <data name="ProductName" xml:space="preserve">
+    <value>Product Name</value>
+  </data>
+  <data name="ProductNamePlaceholder" xml:space="preserve">
+    <value>Product name</value>
+  </data>
+  <data name="Quantity" xml:space="preserve">
+    <value>Quantity</value>
+  </data>
+  <data name="UnitPrice" xml:space="preserve">
+    <value>Unit Price</value>
+  </data>
+  <data name="Subtotal" xml:space="preserve">
+    <value>Subtotal</value>
+  </data>
+  <data name="RemoveItem" xml:space="preserve">
+    <value>Remove item</value>
+  </data>
+
+  <!-- Form Actions -->
+  <data name="Total" xml:space="preserve">
+    <value>Total:</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>{0} item(s)</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Updating" xml:space="preserve">
+    <value>Updating...</value>
+  </data>
+  <data name="UpdateOrderButton" xml:space="preserve">
+    <value>Update Order</value>
+  </data>
+
+  <!-- Validation Messages -->
+  <data name="OrderDataNotLoaded" xml:space="preserve">
+    <value>Order data not loaded.</value>
+  </data>
+  <data name="CustomerNameRequired" xml:space="preserve">
+    <value>Customer name is required.</value>
+  </data>
+  <data name="CustomerEmailRequired" xml:space="preserve">
+    <value>Customer email is required.</value>
+  </data>
+  <data name="ProductNameRequired" xml:space="preserve">
+    <value>All items must have a product name.</value>
+  </data>
+  <data name="QuantityRequired" xml:space="preserve">
+    <value>All items must have a quantity greater than 0.</value>
+  </data>
+  <data name="UnitPriceRequired" xml:space="preserve">
+    <value>All items must have a unit price greater than 0.</value>
+  </data>
+
+  <!-- Error Messages -->
+  <data name="FailedToLoadOrder" xml:space="preserve">
+    <value>Failed to load order: {0}</value>
+  </data>
+  <data name="FailedToUpdateOrder" xml:space="preserve">
+    <value>Failed to update order: {0}</value>
+  </data>
+</root>
