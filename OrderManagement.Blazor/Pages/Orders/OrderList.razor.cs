@@ -21,6 +21,7 @@ public partial class OrderList : IDisposable
 
     private IDisposable? _createSubscription;
     private IDisposable? _updateSubscription;
+    private IDisposable? _deleteSubscription;
 
     // Paging state
     private int pageSize = 10;
@@ -31,6 +32,7 @@ public partial class OrderList : IDisposable
     private bool hasPreviousPage = false;
     private Stack<string> cursorHistory = new();
     private int currentPageNumber = 1;
+    private int totalCount = 0;
 
     // Filter state
     private OrderStatus? filterStatus = null;
@@ -39,6 +41,13 @@ public partial class OrderList : IDisposable
     // Sort state
     private string sortField = "CREATED_AT";
     private bool sortDescending = true;
+
+    // Delete state
+    private bool showDeleteConfirmation = false;
+    private bool isDeleting = false;
+    private Guid deleteOrderId;
+    private string deleteOrderNumber = string.Empty;
+    private string deleteCustomerName = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -77,6 +86,7 @@ public partial class OrderList : IDisposable
                     .ToList() ?? new List<OrderViewModel>();
 
                 // Update pagination state
+                totalCount = result.Data.Orders.TotalCount;
                 hasNextPage = result.Data.Orders.PageInfo?.HasNextPage ?? false;
                 hasPreviousPage = result.Data.Orders.PageInfo?.HasPreviousPage ?? false;
                 startCursor = result.Data.Orders.PageInfo?.StartCursor;
@@ -150,25 +160,16 @@ public partial class OrderList : IDisposable
 
     private IReadOnlyList<OrderSortInput>? BuildSort()
     {
-        var sortInput = new OrderSortInput();
         var sortDirection = sortDescending ? SortEnumType.Desc : SortEnumType.Asc;
-
-        switch (sortField)
+        var sortInput = sortField switch
         {
-            case "ORDER_NUMBER":
-                sortInput.OrderNumber = sortDirection;
-                break;
-            case "CUSTOMER_NAME":
-                sortInput.CustomerName = sortDirection;
-                break;
-            case "STATUS":
-                sortInput.Status = sortDirection;
-                break;
-            case "CREATED_AT":
-            default:
-                sortInput.CreatedAt = sortDirection;
-                break;
-        }
+            "ORDER_NUMBER" => new OrderSortInput { OrderNumber = sortDirection },
+            "CUSTOMER_NAME" => new OrderSortInput { CustomerName = sortDirection },
+            "CUSTOMER_EMAIL" => new OrderSortInput { CustomerEmail = sortDirection },
+            "STATUS" => new OrderSortInput { Status = sortDirection },
+            "CREATED_AT" => new OrderSortInput { CreatedAt = sortDirection },
+            _ => new OrderSortInput { CreatedAt = sortDirection }
+        };
 
         return new[] { sortInput };
     }
@@ -248,6 +249,7 @@ public partial class OrderList : IDisposable
 
         currentCursor = null;
         cursorHistory.Clear();
+        currentPageNumber = 1;
         await LoadOrdersAsync();
     }
 
@@ -299,12 +301,94 @@ public partial class OrderList : IDisposable
                     }
                 });
 
+            // Subscribe to order deleted events
+            _deleteSubscription = GraphQLClient.OnOrderDeleted
+                .Watch()
+                .Subscribe(result =>
+                {
+                    if (result.Data?.OnOrderDeleted != null)
+                    {
+                        InvokeAsync(() =>
+                        {
+                            var deletedOrderId = result.Data.OnOrderDeleted;
+
+                            // Remove order from list
+                            var orderToRemove = orders.FirstOrDefault(o => o.Id == deletedOrderId);
+                            if (orderToRemove != null)
+                            {
+                                orders.Remove(orderToRemove);
+                                StateHasChanged();
+                            }
+                        });
+                    }
+                });
+
             subscriptionsActive = true;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Failed to setup realtime subscriptions: {ex.Message}");
             // Continue without realtime updates
+        }
+    }
+
+    private void ShowDeleteConfirmation(Guid orderId, string orderNumber, string customerName)
+    {
+        deleteOrderId = orderId;
+        deleteOrderNumber = orderNumber;
+        deleteCustomerName = customerName;
+        showDeleteConfirmation = true;
+    }
+
+    private void CancelDelete()
+    {
+        showDeleteConfirmation = false;
+        deleteOrderId = Guid.Empty;
+        deleteOrderNumber = string.Empty;
+        deleteCustomerName = string.Empty;
+    }
+
+    private async Task ConfirmDelete()
+    {
+        try
+        {
+            isDeleting = true;
+            errorMessage = null;
+
+            var result = await GraphQLClient.DeleteOrder.ExecuteAsync(deleteOrderId);
+
+            if (result.Data?.DeleteOrder == true)
+            {
+                // Remove order from list
+                var orderToRemove = orders.FirstOrDefault(o => o.Id == deleteOrderId);
+                if (orderToRemove != null)
+                {
+                    orders.Remove(orderToRemove);
+                }
+
+                showDeleteConfirmation = false;
+                CancelDelete();
+                StateHasChanged();
+            }
+            else if (result.Errors?.Count > 0)
+            {
+                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
+                showDeleteConfirmation = false;
+            }
+            else
+            {
+                errorMessage = "Failed to delete order.";
+                showDeleteConfirmation = false;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete order: {ex.Message}";
+            showDeleteConfirmation = false;
+        }
+        finally
+        {
+            isDeleting = false;
         }
     }
 
@@ -324,5 +408,6 @@ public partial class OrderList : IDisposable
     {
         _createSubscription?.Dispose();
         _updateSubscription?.Dispose();
+        _deleteSubscription?.Dispose();
     }
 }

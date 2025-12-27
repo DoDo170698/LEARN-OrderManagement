@@ -18,6 +18,7 @@ query GetOrdersList(
     where: $where
     order: $order
   ) {
+    totalCount
     pageInfo {
       hasNextPage
       hasPreviousPage
@@ -66,23 +67,6 @@ query GetOrderDetails($orderId: UUID!) {
 }
 
 # ============================================
-# OPTIMIZED QUERY 3: Get Orders By Status (NO items)
-# Filter orders by status - minimal payload
-# ============================================
-query GetOrdersByStatus($status: OrderStatus!) {
-  ordersByStatus(status: $status) {
-    id
-    orderNumber
-    customerName
-    customerEmail
-    status
-    createdAt
-    updatedAt
-    # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
-  }
-}
-
-# ============================================
 # OPTIMIZED MUTATION 1: Create Order (NO items in response)
 # Items already provided in input, no need to return them
 # ============================================
@@ -120,51 +104,12 @@ mutation UpdateOrder($input: UpdateOrderInput!) {
   }
 }
 
-# Mutation to delete an order
+# ============================================
+# MUTATION 3: Delete Order
+# Deletes an order and all its items
+# ============================================
 mutation DeleteOrder($id: UUID!) {
   deleteOrder(id: $id)
-}
-
-# ============================================
-# OPTIMIZED QUERY 4: Get Order Items (with paging)
-# Use this for displaying order items with pagination
-# ============================================
-query GetOrderItemsList(
-  $orderId: UUID!
-  $first: Int
-  $after: String
-  $last: Int
-  $before: String
-  $where: OrderItemFilterInput
-  $order: [OrderItemSortInput!]
-) {
-  orderItems(
-    orderId: $orderId
-    first: $first
-    after: $after
-    last: $last
-    before: $before
-    where: $where
-    order: $order
-  ) {
-    pageInfo {
-      hasNextPage
-      hasPreviousPage
-      startCursor
-      endCursor
-    }
-    edges {
-      cursor
-      node {
-        id
-        productName
-        quantity
-        unitPrice
-        subtotal
-        createdAt
-      }
-    }
-  }
 }
 
 # ============================================
@@ -199,4 +144,12 @@ subscription OnOrderUpdated {
     updatedAt
     # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
   }
+}
+
+# ============================================
+# SUBSCRIPTION 3: Order Deleted
+# Realtime notification when order deleted - returns order ID
+# ============================================
+subscription OnOrderDeleted {
+  onOrderDeleted
 }

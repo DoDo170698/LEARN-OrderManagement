@@ -84,13 +84,12 @@ type ItemsEdge {
 type OrderQueries {
   orders("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: OrderFilterInput order: [OrderSortInput!]): OrdersConnection
   orderById(id: UUID!): OrderDto!
-  ordersByStatus(status: OrderStatus!): [OrderDto!]!
-  orderItems(orderId: UUID! "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: OrderItemFilterInput order: [OrderItemSortInput!]): OrderItemsConnection
 }
 
 type OrderSubscriptions {
   onOrderCreated: OrderDto!
   onOrderUpdated: OrderDto!
+  onOrderDeleted: UUID!
 }
 
 scalar UUID
@@ -128,30 +127,6 @@ input OrderSortInput {
   updatedAt: SortEnumType
 }
 
-input OrderItemFilterInput {
-  and: [OrderItemFilterInput!]
-  or: [OrderItemFilterInput!]
-  id: UuidOperationFilterInput
-  orderId: UuidOperationFilterInput
-  productName: StringOperationFilterInput
-  quantity: IntOperationFilterInput
-  unitPrice: DecimalOperationFilterInput
-  subtotal: DecimalOperationFilterInput
-  createdAt: DateTimeOperationFilterInput
-  order: OrderFilterInput
-}
-
-input OrderItemSortInput {
-  id: SortEnumType
-  orderId: SortEnumType
-  productName: SortEnumType
-  quantity: SortEnumType
-  unitPrice: SortEnumType
-  subtotal: SortEnumType
-  createdAt: SortEnumType
-  order: OrderSortInput
-}
-
 "A connection to a list of items."
 type OrdersConnection {
   "Information to aid in pagination."
@@ -160,16 +135,8 @@ type OrdersConnection {
   edges: [OrdersEdge!]
   "A flattened list of the nodes."
   nodes: [Order!]
-}
-
-"A connection to a list of items."
-type OrderItemsConnection {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
-  "A list of edges."
-  edges: [OrderItemsEdge!]
-  "A flattened list of the nodes."
-  nodes: [OrderItem!]
+  "Identifies the total count of items in the connection."
+  totalCount: Int!
 }
 
 input UuidOperationFilterInput {
@@ -236,6 +203,27 @@ enum SortEnumType {
   DESC
 }
 
+"An edge in a connection."
+type OrdersEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Order!
+}
+
+input OrderItemFilterInput {
+  and: [OrderItemFilterInput!]
+  or: [OrderItemFilterInput!]
+  id: UuidOperationFilterInput
+  orderId: UuidOperationFilterInput
+  productName: StringOperationFilterInput
+  quantity: IntOperationFilterInput
+  unitPrice: DecimalOperationFilterInput
+  subtotal: DecimalOperationFilterInput
+  createdAt: DateTimeOperationFilterInput
+  order: OrderFilterInput
+}
+
 input IntOperationFilterInput {
   eq: Int
   neq: Int
@@ -264,22 +252,6 @@ input DecimalOperationFilterInput {
   nlt: Decimal
   lte: Decimal
   nlte: Decimal
-}
-
-"An edge in a connection."
-type OrdersEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: Order!
-}
-
-"An edge in a connection."
-type OrderItemsEdge {
-  "A cursor for use in pagination."
-  cursor: String!
-  "The item at the end of the edge."
-  node: OrderItem!
 }
 
 input UpdateOrderInput {

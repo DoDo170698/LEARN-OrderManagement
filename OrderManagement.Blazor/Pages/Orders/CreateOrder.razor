@@ -100,9 +100,8 @@
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label fw-semibold small">Subtotal</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">$</span>
-                                            <input type="text" class="form-control" value="@($"{(item.Quantity * item.UnitPrice):N2}")" readonly />
+                                        <div class="d-flex align-items-center h-100">
+                                            <span class="text-primary fs-5">@($"${(item.Quantity * item.UnitPrice):N2}")</span>
                                         </div>
                                     </div>
                                     <div class="col-md-1">

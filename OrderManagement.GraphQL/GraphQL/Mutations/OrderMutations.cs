@@ -85,6 +85,7 @@ public class OrderMutations
     public async Task<bool> DeleteOrderAsync(
         Guid id,
         [Service] IMediator mediator,
+        [Service] ITopicEventSender eventSender,
         CancellationToken cancellationToken)
     {
         var command = new DeleteOrderCommand { Id = id };
@@ -94,6 +95,9 @@ public class OrderMutations
         {
             throw new OrderNotFoundError(id);
         }
+
+        // Send realtime event
+        await eventSender.SendAsync(nameof(OrderSubscriptions.OnOrderDeleted), id, cancellationToken);
 
         return result;
     }

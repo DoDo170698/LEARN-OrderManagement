@@ -28,4 +28,14 @@ public class OrderSubscriptions
     {
         return order;
     }
+
+    /// <summary>
+    /// Subscribe to order deletion events
+    /// </summary>
+    [Subscribe]
+    [Topic(nameof(OnOrderDeleted))]
+    public Guid OnOrderDeleted([EventMessage] Guid orderId)
+    {
+        return orderId;
+    }
 }

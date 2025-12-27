@@ -17,10 +17,6 @@ public interface IOrderRepository : IRepository<Order>
     /// </summary>
     IQueryable<Order> GetOrdersQueryable();
 
-    Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Order>> GetOrdersByCustomerEmailAsync(string email, CancellationToken cancellationToken = default);
-    Task<Order?> GetOrderByOrderNumberAsync(string orderNumber, CancellationToken cancellationToken = default);
-
     /// <summary>
     /// PERFORMANCE FIX: Get count of orders for specific year without loading all data
     /// </summary>

@@ -39,33 +39,8 @@ public class OrderRepository : Repository<Order>, IOrderRepository
     public IQueryable<Order> GetOrdersQueryable()
     {
         // NO Include - optimized for list view without items
-        return _dbSet
-            .OrderByDescending(o => o.CreatedAt);
-    }
-
-    public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status, CancellationToken cancellationToken = default)
-    {
-        return await _dbSet
-            .Include(o => o.Items)
-            .Where(o => o.Status == status)
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<IEnumerable<Order>> GetOrdersByCustomerEmailAsync(string email, CancellationToken cancellationToken = default)
-    {
-        return await _dbSet
-            .Include(o => o.Items)
-            .Where(o => o.CustomerEmail == email)
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<Order?> GetOrderByOrderNumberAsync(string orderNumber, CancellationToken cancellationToken = default)
-    {
-        return await _dbSet
-            .Include(o => o.Items)
-            .FirstOrDefaultAsync(o => o.OrderNumber == orderNumber, cancellationToken);
+        // NO default OrderBy - GraphQL [UseSorting] middleware will handle sorting
+        return _dbSet;
     }
 
     public async Task<int> GetOrderCountByYearAsync(int year, CancellationToken cancellationToken = default)

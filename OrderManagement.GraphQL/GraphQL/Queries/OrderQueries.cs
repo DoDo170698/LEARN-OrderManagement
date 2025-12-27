@@ -19,7 +19,7 @@ public class OrderQueries
     /// Gets all orders WITHOUT items (optimized for list view) - supports paging, filtering, and sorting
     /// </summary>
     [Authorize]
-    [UsePaging]
+    [UsePaging(IncludeTotalCount = true)]
     [UseFiltering]
     [UseSorting]
     public async Task<IQueryable<Order>> GetOrdersAsync(
@@ -50,36 +50,5 @@ public class OrderQueries
         }
 
         return order;
-    }
-
-    /// <summary>
-    /// Gets orders filtered by status
-    /// </summary>
-    [Authorize]
-    public async Task<IEnumerable<OrderDto>> GetOrdersByStatusAsync(
-        OrderStatus status,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        // ✅ CORRECT: Go through CQRS layer
-        var query = new GetOrdersByStatusQuery { Status = status };
-        return await mediator.Send(query, cancellationToken);
-    }
-
-    /// <summary>
-    /// Gets order items for a specific order - supports paging, filtering, and sorting
-    /// </summary>
-    [Authorize]
-    [UsePaging]
-    [UseFiltering]
-    [UseSorting]
-    public async Task<IQueryable<OrderItem>> GetOrderItemsAsync(
-        Guid orderId,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        // ✅ CORRECT: Go through CQRS layer
-        var query = new GetOrderItemsQuery { OrderId = orderId };
-        return await mediator.Send(query, cancellationToken);
     }
 }
