@@ -1,98 +1,139 @@
 @page "/orders/create"
-@using OrderManagement.Blazor.Services
-@inject OrderService OrderService
+@inject IOrderManagementClient GraphQLClient
 @inject NavigationManager Navigation
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>Create Order</PageTitle>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Create New Order</h1>
-        <a href="/orders" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to List
-        </a>
+        <div>
+            <h1 class="mb-1">
+                <i class="bi bi-plus-circle"></i> Create New Order
+            </h1>
+        </div>
+        <div>
+            <a href="/orders" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
     </div>
 
     @if (errorMessage != null)
     {
-        <div class="alert alert-danger" role="alert">
-            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+        <div class="alert alert-danger shadow-sm" role="alert">
+            <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Error</h5>
+            <p class="mb-0">@errorMessage</p>
         </div>
     }
 
-    <div class="card">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-plus-circle me-2"></i>New Order
+            </h5>
+        </div>
         <div class="card-body">
             <EditForm Model="@orderInput" OnValidSubmit="HandleSubmit">
                 <DataAnnotationsValidator />
 
+                <!-- Customer Information -->
                 <div class="row mb-4">
                     <div class="col-md-6">
-                        <h5>Customer Information</h5>
+                        <h6 class="text-muted text-uppercase mb-3">
+                            <i class="bi bi-person-circle me-2"></i>Customer Information
+                        </h6>
                         <div class="mb-3">
-                            <label class="form-label">Customer Name *</label>
+                            <label class="form-label fw-semibold">Customer Name <span class="text-danger">*</span></label>
                             <InputText @bind-Value="orderInput.CustomerName" class="form-control" placeholder="Enter customer name" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Customer Email *</label>
+                            <label class="form-label fw-semibold">Customer Email <span class="text-danger">*</span></label>
                             <InputText @bind-Value="orderInput.CustomerEmail" class="form-control" type="email" placeholder="customer@example.com" />
                         </div>
                     </div>
 
                     <div class="col-md-6">
-                        <h5>Order Items</h5>
-                        <p class="text-muted">Add at least one item to the order</p>
+                        <h6 class="text-muted text-uppercase mb-3">
+                            <i class="bi bi-info-circle me-2"></i>Order Information
+                        </h6>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-1"></i>
+                            <small>Status will be set to <strong>Pending</strong> automatically</small>
+                        </div>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-1"></i>
+                            <small>Add at least one item to the order</small>
+                        </div>
                     </div>
                 </div>
 
                 <hr />
 
-                <h5 class="mb-3">Items</h5>
+                <!-- Order Items Section -->
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-muted text-uppercase mb-0">
+                            <i class="bi bi-box-seam me-2"></i>Order Items
+                        </h6>
+                        <button type="button" class="btn btn-sm btn-primary" @onclick="AddItem">
+                            <i class="bi bi-plus-circle me-1"></i>Add Item
+                        </button>
+                    </div>
 
-                @foreach (var (item, index) in orderInput.Items.Select((item, index) => (item, index)))
-                {
-                    <div class="card mb-3">
-                        <div class="card-body">
-                            <div class="row align-items-end">
-                                <div class="col-md-4">
-                                    <label class="form-label">Product Name *</label>
-                                    <InputText @bind-Value="item.ProductName" class="form-control" placeholder="Product name" />
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Quantity *</label>
-                                    <InputNumber @bind-Value="item.Quantity" class="form-control" min="1" />
-                                </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Unit Price *</label>
-                                    <InputNumber @bind-Value="item.UnitPrice" class="form-control" step="0.01" min="0" />
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Subtotal</label>
-                                    <input type="text" class="form-control" value="@((item.Quantity * item.UnitPrice).ToString("C"))" readonly />
-                                </div>
-                                <div class="col-md-1">
-                                    @if (orderInput.Items.Count > 1)
-                                    {
-                                        <button type="button" class="btn btn-danger btn-sm w-100" @onclick="() => RemoveItem(index)">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    }
+                    @foreach (var (item, index) in orderInput.Items.Select((item, index) => (item, index)))
+                    {
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body">
+                                <div class="row align-items-end">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-semibold small">Product Name <span class="text-danger">*</span></label>
+                                        <InputText @bind-Value="item.ProductName" class="form-control" placeholder="Product name" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label fw-semibold small">Quantity <span class="text-danger">*</span></label>
+                                        <InputNumber @bind-Value="item.Quantity" class="form-control" min="1" />
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-semibold small">Unit Price <span class="text-danger">*</span></label>
+                                        <InputNumber @bind-Value="item.UnitPrice" class="form-control" step="0.01" min="0" />
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label class="form-label fw-semibold small">Subtotal</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="text" class="form-control" value="@($"{(item.Quantity * item.UnitPrice):N2}")" readonly />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-1">
+                                        @if (orderInput.Items.Count > 1)
+                                        {
+                                            <button type="button" class="btn btn-danger btn-sm w-100" @onclick="() => RemoveItem(index)" title="Remove item">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                }
-
-                <button type="button" class="btn btn-secondary mb-4" @onclick="AddItem">
-                    <i class="bi bi-plus-circle"></i> Add Item
-                </button>
+                    }
+                </div>
 
                 <hr />
 
+                <!-- Total & Actions -->
                 <div class="d-flex justify-content-between align-items-center">
-                    <h4>Total: <span class="text-success">@CalculateTotal().ToString("C")</span></h4>
                     <div>
-                        <button type="button" class="btn btn-outline-secondary me-2" @onclick="Cancel">Cancel</button>
+                        <h5 class="mb-0">
+                            <i class="bi bi-calculator me-2"></i>Total:
+                            <span class="text-success ms-2">@($"${CalculateTotal():N2}")</span>
+                        </h5>
+                        <small class="text-muted">@orderInput.Items.Count item(s)</small>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary me-2" @onclick="Cancel">
+                            <i class="bi bi-x-circle me-1"></i>Cancel
+                        </button>
                         <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
                             @if (isSubmitting)
                             {
@@ -101,8 +142,8 @@
                             }
                             else
                             {
-                                <i class="bi bi-check-circle"></i>
-                                <span> Create Order</span>
+                                <i class="bi bi-check-circle me-1"></i>
+                                <span>Create Order</span>
                             }
                         </button>
                     </div>
@@ -113,9 +154,9 @@
 </div>
 
 @code {
-    private CreateOrderInput orderInput = new()
+    private OrderInput orderInput = new()
     {
-        Items = new() { new CreateOrderItemInput() }
+        Items = new() { new OrderItemInput() }
     };
 
     private bool isSubmitting = false;
@@ -123,7 +164,7 @@
 
     private void AddItem()
     {
-        orderInput.Items.Add(new CreateOrderItemInput());
+        orderInput.Items.Add(new OrderItemInput());
     }
 
     private void RemoveItem(int index)
@@ -181,8 +222,30 @@
                 return;
             }
 
-            var order = await OrderService.CreateOrderAsync(orderInput);
-            Navigation.NavigateTo($"/orders/{order.Id}");
+            // Map to GraphQL input
+            var input = new CreateOrderInput
+            {
+                CustomerName = orderInput.CustomerName,
+                CustomerEmail = orderInput.CustomerEmail,
+                Items = orderInput.Items.Select(i => new CreateOrderItemInput
+                {
+                    ProductName = i.ProductName,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.UnitPrice
+                }).ToList()
+            };
+
+            var result = await GraphQLClient.CreateOrder.ExecuteAsync(input);
+
+            if (result.Data?.CreateOrder?.Order != null)
+            {
+                var orderId = result.Data.CreateOrder.Order.Id;
+                Navigation.NavigateTo($"/orders/{orderId}");
+            }
+            else if (result.Errors?.Count > 0)
+            {
+                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
+            }
         }
         catch (Exception ex)
         {
@@ -192,5 +255,20 @@
         {
             isSubmitting = false;
         }
+    }
+
+    // Local input models for form binding
+    public class OrderInput
+    {
+        public string CustomerName { get; set; } = string.Empty;
+        public string CustomerEmail { get; set; } = string.Empty;
+        public List<OrderItemInput> Items { get; set; } = new();
+    }
+
+    public class OrderItemInput
+    {
+        public string ProductName { get; set; } = string.Empty;
+        public int Quantity { get; set; } = 1;
+        public decimal UnitPrice { get; set; } = 0;
     }
 }

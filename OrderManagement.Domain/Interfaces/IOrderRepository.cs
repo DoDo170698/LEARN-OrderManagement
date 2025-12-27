@@ -11,6 +11,12 @@ public interface IOrderRepository : IRepository<Order>
     Task<Order?> GetOrderWithItemsAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<Order>> GetAllOrdersWithItemsAsync(CancellationToken cancellationToken = default);
     IQueryable<Order> GetOrdersWithItemsQueryable();
+
+    /// <summary>
+    /// Get orders queryable WITHOUT items (optimized for list view)
+    /// </summary>
+    IQueryable<Order> GetOrdersQueryable();
+
     Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status, CancellationToken cancellationToken = default);
     Task<IEnumerable<Order>> GetOrdersByCustomerEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<Order?> GetOrderByOrderNumberAsync(string orderNumber, CancellationToken cancellationToken = default);

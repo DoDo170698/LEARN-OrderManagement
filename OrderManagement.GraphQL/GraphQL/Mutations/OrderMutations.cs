@@ -61,7 +61,13 @@ public class OrderMutations
             Id = input.Id,
             CustomerName = input.CustomerName,
             CustomerEmail = input.CustomerEmail,
-            Status = (OrderManagement.Domain.Enums.OrderStatus?)input.Status
+            Status = (OrderManagement.Domain.Enums.OrderStatus?)input.Status,
+            Items = input.Items?.Select(i => new CreateOrderItemDto
+            {
+                ProductName = i.ProductName,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice
+            }).ToList()
         };
 
         var orderDto = await mediator.Send(command, cancellationToken);

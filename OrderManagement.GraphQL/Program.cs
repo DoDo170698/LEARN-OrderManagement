@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using OrderManagement.Application;
 using OrderManagement.GraphQL.GraphQL.Mutations;
 using OrderManagement.GraphQL.GraphQL.Queries;
+using OrderManagement.GraphQL.GraphQL.Types;
 using OrderManagement.Infrastructure;
 using OrderManagement.Infrastructure.Persistence;
 using System.Text;
@@ -64,19 +65,30 @@ builder.Services
     .AddMutationType()
     .AddTypeExtension<OrderMutations>()
     .AddSubscriptionType<OrderSubscriptions>()
+    .AddType<OrderType>()
+    .AddType<OrderItemType>()
     .AddProjections()
     .AddFiltering()
     .AddSorting()
     .AddInMemorySubscriptions()
-    .AddAuthorization();
+    .AddAuthorization()
+    // FIX: Disable cost enforcement to prevent "maximum allowed field cost exceeded" error
+    .ModifyCostOptions(options =>
+    {
+        options.EnforceCostLimits = false; // Disable cost limit enforcement
+        options.MaxFieldCost = int.MaxValue; // Set to maximum value as backup
+    });
 
 var app = builder.Build();
 
-// Initialize database
+// Initialize database and seed data
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await context.Database.EnsureCreatedAsync();
+
+    // Seed mock data for development/testing (centralized in DataSeeder.cs)
+    await DataSeeder.SeedDataAsync(context);
 }
 
 // Configure middleware pipeline

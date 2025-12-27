@@ -1,28 +1,33 @@
 using HotChocolate.Authorization;
+using HotChocolate.Data;
 using MediatR;
 using OrderManagement.Application.DTOs;
 using OrderManagement.Application.UseCases.Orders.Queries;
 using OrderManagement.Domain.Entities;
 using OrderManagement.Domain.Enums;
-using OrderManagement.Domain.Interfaces;
 using OrderManagement.GraphQL.GraphQL.Payloads;
 
 namespace OrderManagement.GraphQL.GraphQL.Queries;
 
 /// <summary>
 /// GraphQL queries for Order entity
+/// IMPORTANT: All queries go through CQRS layer (MediatR) for consistency
 /// </summary>
 public class OrderQueries
 {
     /// <summary>
-    /// Gets all orders with their items
+    /// Gets all orders WITHOUT items (optimized for list view) - supports paging, filtering, and sorting
     /// </summary>
     [Authorize]
-    public async Task<IEnumerable<OrderDto>> GetOrdersAsync(
+    [UsePaging]
+    [UseFiltering]
+    [UseSorting]
+    public async Task<IQueryable<Order>> GetOrdersAsync(
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        var query = new GetAllOrdersQuery();
+        // ✅ CORRECT: Go through CQRS layer
+        var query = new GetOrdersQuery();
         return await mediator.Send(query, cancellationToken);
     }
 
@@ -35,6 +40,7 @@ public class OrderQueries
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
+        // ✅ CORRECT: Go through CQRS layer
         var query = new GetOrderByIdQuery { Id = id };
         var order = await mediator.Send(query, cancellationToken);
 
@@ -55,7 +61,25 @@ public class OrderQueries
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
+        // ✅ CORRECT: Go through CQRS layer
         var query = new GetOrdersByStatusQuery { Status = status };
+        return await mediator.Send(query, cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets order items for a specific order - supports paging, filtering, and sorting
+    /// </summary>
+    [Authorize]
+    [UsePaging]
+    [UseFiltering]
+    [UseSorting]
+    public async Task<IQueryable<OrderItem>> GetOrderItemsAsync(
+        Guid orderId,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        // ✅ CORRECT: Go through CQRS layer
+        var query = new GetOrderItemsQuery { OrderId = orderId };
         return await mediator.Send(query, cancellationToken);
     }
 }

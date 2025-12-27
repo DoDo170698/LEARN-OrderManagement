@@ -9,5 +9,6 @@ public record UpdateOrderInput(
     Guid Id,
     string? CustomerName,
     string? CustomerEmail,
-    OrderStatus? Status
+    OrderStatus? Status,
+    List<CreateOrderItemInput>? Items
 );

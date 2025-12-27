@@ -10,6 +10,47 @@ type Mutation {
   deleteOrder(id: UUID!): Boolean!
 }
 
+"Represents a customer order with items"
+type Order {
+  "Order items with pagination support"
+  items("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ItemsConnection
+  "Total amount calculated from all order items"
+  totalAmount: Decimal
+  id: UUID!
+  orderNumber: String!
+  customerName: String!
+  customerEmail: String!
+  status: OrderStatus!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+"Represents an item within an order"
+type OrderItem {
+  "Subtotal for this line item (Quantity * UnitPrice)"
+  subtotal: Decimal
+  id: UUID!
+  orderId: UUID!
+  productName: String!
+  quantity: Int!
+  unitPrice: Decimal!
+  createdAt: DateTime!
+  order: Order!
+}
+
+"A connection to a list of items."
+type ItemsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [ItemsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OrderItem]
+}
+
+"The `Decimal` scalar type represents a decimal floating-point number."
+scalar Decimal
+
 "Defines when a policy shall be executed."
 enum ApplyPolicy {
   "Before the resolver was executed."
@@ -20,10 +61,31 @@ enum ApplyPolicy {
   VALIDATION
 }
 
+"Information about pagination in a connection."
+type PageInfo {
+  "Indicates whether more edges exist following the set defined by the clients arguments."
+  hasNextPage: Boolean!
+  "Indicates whether more edges exist prior the set defined by the clients arguments."
+  hasPreviousPage: Boolean!
+  "When paginating backwards, the cursor to continue."
+  startCursor: String
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
+}
+
+"An edge in a connection."
+type ItemsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OrderItem
+}
+
 type OrderQueries {
-  orders: [OrderDto!]!
+  orders("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: OrderFilterInput order: [OrderSortInput!]): OrdersConnection
   orderById(id: UUID!): OrderDto!
   ordersByStatus(status: OrderStatus!): [OrderDto!]!
+  orderItems(orderId: UUID! "Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String where: OrderItemFilterInput order: [OrderItemSortInput!]): OrderItemsConnection
 }
 
 type OrderSubscriptions {
@@ -31,9 +93,7 @@ type OrderSubscriptions {
   onOrderUpdated: OrderDto!
 }
 
-type CreateOrderPayload {
-  order: OrderDto!
-}
+scalar UUID
 
 enum OrderStatus {
   PENDING
@@ -42,7 +102,207 @@ enum OrderStatus {
   CANCELLED
 }
 
-scalar UUID
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+input OrderFilterInput {
+  and: [OrderFilterInput!]
+  or: [OrderFilterInput!]
+  id: UuidOperationFilterInput
+  orderNumber: StringOperationFilterInput
+  customerName: StringOperationFilterInput
+  customerEmail: StringOperationFilterInput
+  status: OrderStatusOperationFilterInput
+  createdAt: DateTimeOperationFilterInput
+  updatedAt: DateTimeOperationFilterInput
+  items: ListFilterInputTypeOfOrderItemFilterInput
+}
+
+input OrderSortInput {
+  id: SortEnumType
+  orderNumber: SortEnumType
+  customerName: SortEnumType
+  customerEmail: SortEnumType
+  status: SortEnumType
+  createdAt: SortEnumType
+  updatedAt: SortEnumType
+}
+
+input OrderItemFilterInput {
+  and: [OrderItemFilterInput!]
+  or: [OrderItemFilterInput!]
+  id: UuidOperationFilterInput
+  orderId: UuidOperationFilterInput
+  productName: StringOperationFilterInput
+  quantity: IntOperationFilterInput
+  unitPrice: DecimalOperationFilterInput
+  subtotal: DecimalOperationFilterInput
+  createdAt: DateTimeOperationFilterInput
+  order: OrderFilterInput
+}
+
+input OrderItemSortInput {
+  id: SortEnumType
+  orderId: SortEnumType
+  productName: SortEnumType
+  quantity: SortEnumType
+  unitPrice: SortEnumType
+  subtotal: SortEnumType
+  createdAt: SortEnumType
+  order: OrderSortInput
+}
+
+"A connection to a list of items."
+type OrdersConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [OrdersEdge!]
+  "A flattened list of the nodes."
+  nodes: [Order!]
+}
+
+"A connection to a list of items."
+type OrderItemsConnection {
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
+  "A list of edges."
+  edges: [OrderItemsEdge!]
+  "A flattened list of the nodes."
+  nodes: [OrderItem!]
+}
+
+input UuidOperationFilterInput {
+  eq: UUID
+  neq: UUID
+  in: [UUID]
+  nin: [UUID]
+  gt: UUID
+  ngt: UUID
+  gte: UUID
+  ngte: UUID
+  lt: UUID
+  nlt: UUID
+  lte: UUID
+  nlte: UUID
+}
+
+input StringOperationFilterInput {
+  and: [StringOperationFilterInput!]
+  or: [StringOperationFilterInput!]
+  eq: String
+  neq: String
+  contains: String
+  ncontains: String
+  in: [String]
+  nin: [String]
+  startsWith: String
+  nstartsWith: String
+  endsWith: String
+  nendsWith: String
+}
+
+input OrderStatusOperationFilterInput {
+  eq: OrderStatus
+  neq: OrderStatus
+  in: [OrderStatus!]
+  nin: [OrderStatus!]
+}
+
+input DateTimeOperationFilterInput {
+  eq: DateTime
+  neq: DateTime
+  in: [DateTime]
+  nin: [DateTime]
+  gt: DateTime
+  ngt: DateTime
+  gte: DateTime
+  ngte: DateTime
+  lt: DateTime
+  nlt: DateTime
+  lte: DateTime
+  nlte: DateTime
+}
+
+input ListFilterInputTypeOfOrderItemFilterInput {
+  all: OrderItemFilterInput
+  none: OrderItemFilterInput
+  some: OrderItemFilterInput
+  any: Boolean
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+input IntOperationFilterInput {
+  eq: Int
+  neq: Int
+  in: [Int]
+  nin: [Int]
+  gt: Int
+  ngt: Int
+  gte: Int
+  ngte: Int
+  lt: Int
+  nlt: Int
+  lte: Int
+  nlte: Int
+}
+
+input DecimalOperationFilterInput {
+  eq: Decimal
+  neq: Decimal
+  in: [Decimal]
+  nin: [Decimal]
+  gt: Decimal
+  ngt: Decimal
+  gte: Decimal
+  ngte: Decimal
+  lt: Decimal
+  nlt: Decimal
+  lte: Decimal
+  nlte: Decimal
+}
+
+"An edge in a connection."
+type OrdersEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: Order!
+}
+
+"An edge in a connection."
+type OrderItemsEdge {
+  "A cursor for use in pagination."
+  cursor: String!
+  "The item at the end of the edge."
+  node: OrderItem!
+}
+
+input UpdateOrderInput {
+  id: UUID!
+  customerName: String
+  customerEmail: String
+  status: OrderStatus
+  items: [CreateOrderItemInput!]
+}
+
+type UpdateOrderPayload {
+  order: OrderDto
+}
+
+input CreateOrderInput {
+  customerName: String!
+  customerEmail: String!
+  items: [CreateOrderItemInput!]!
+}
+
+type CreateOrderPayload {
+  order: OrderDto!
+}
 
 type OrderDto {
   id: UUID!
@@ -56,29 +316,6 @@ type OrderDto {
   items: [OrderItemDto!]!
 }
 
-input CreateOrderInput {
-  customerName: String!
-  customerEmail: String!
-  items: [CreateOrderItemInput!]!
-}
-
-type UpdateOrderPayload {
-  order: OrderDto
-}
-
-input UpdateOrderInput {
-  id: UUID!
-  customerName: String
-  customerEmail: String
-  status: OrderStatus
-}
-
-input CreateOrderItemInput {
-  productName: String!
-  quantity: Int!
-  unitPrice: Decimal!
-}
-
 type OrderItemDto {
   id: UUID!
   orderId: UUID!
@@ -89,11 +326,14 @@ type OrderItemDto {
   createdAt: DateTime!
 }
 
-"The `DateTime` scalar represents an ISO-8601 compliant date time type."
-scalar DateTime
-
-"The `Decimal` scalar type represents a decimal floating-point number."
-scalar Decimal
+input CreateOrderItemInput {
+  productName: String!
+  quantity: Int!
+  unitPrice: Decimal!
+}
 
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
 directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+
+"The purpose of the `@listSize` directive is to either inform the static analysis about the size of returned lists (if that information is statically available), or to point the analysis to where to find that information."
+directive @listSize("The `assumedSize` argument can be used to statically define the maximum length of a list returned by a field." assumedSize: Int "The `slicingArguments` argument can be used to define which of the field's arguments with numeric type are slicing arguments, so that their value determines the size of the list returned by that field. It may specify a list of multiple slicing arguments." slicingArguments: [String!] "The `sizedFields` argument can be used to define that the value of the `assumedSize` argument or of a slicing argument does not affect the size of a list returned by a field itself, but that of a list returned by one of its sub-fields." sizedFields: [String!] "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error." requireOneSlicingArgument: Boolean! = true) on FIELD_DEFINITION

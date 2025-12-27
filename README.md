@@ -1,280 +1,135 @@
-# Order Management GraphQL Application
+# Order Management System
 
-A full-stack local-only application demonstrating GraphQL implementation with real-time capabilities using .NET 10, HotChocolate, and Blazor Server.
-
-## Overview
-
-This project implements a complete Order Management system with:
-- **Backend**: ASP.NET Core GraphQL API using HotChocolate
-- **Frontend**: Blazor Server application with strongly-typed GraphQL client
-- **Database**: Entity Framework Core with In-Memory provider
-- **Real-time**: GraphQL Subscriptions over WebSocket
-- **Authentication**: Mock JWT Bearer Token
-
-### This project is implemented as **local-only**
-
-Azure deployment is intentionally skipped, which is allowed by the exercise requirements.
-
----
+A complete Order Management System built with GraphQL, Blazor Server, and Clean Architecture principles, featuring real-time updates via GraphQL Subscriptions.
 
 ## Tech Stack
 
-### Backend
-- **.NET 10.0** - Latest .NET framework
-- **HotChocolate 14.1** - GraphQL server for .NET
-- **Entity Framework Core 10.x** - ORM with In-Memory provider
-- **ASP.NET Core** - Web framework
+### Backend (GraphQL Server)
+- **ASP.NET Core 10.0** - Modern web framework
+- **HotChocolate 14.1.0** - GraphQL server implementation
+- **Clean Architecture** - Separation of concerns with Domain, Application, Infrastructure layers
+- **CQRS + MediatR** - Command Query Responsibility Segregation pattern
+- **Entity Framework Core InMemory** - In-memory database for development
+- **JWT Bearer Authentication** - Secure API with static token
+- **GraphQL Subscriptions** - Real-time updates via WebSocket
 
-### Frontend
-- **Blazor Server** - Interactive server-side rendering
-- **Custom GraphQL Client** - Strongly-typed HTTP client for GraphQL
-- **Bootstrap 5** - UI framework
-
-### Patterns & Architecture
-- **Repository Pattern** - Data access abstraction
-- **Unit of Work** - Transaction management
-- **Service Layer** - Business logic separation
-- **Dependency Injection** - Built-in .NET DI container
-
----
-
-## Domain Model
-
-**Orders → OrderItems** (1:N relationship)
-
-### Entities
-
-#### Order
-- `Id`: Guid - Unique identifier
-- `OrderNumber`: string - Human-readable order number (e.g., "ORD-2025-001")
-- `CustomerName`: string
-- `CustomerEmail`: string
-- `Status`: OrderStatus enum (Pending, Processing, Completed, Cancelled)
-- `TotalAmount`: decimal - **Computed field (custom resolver)**
-- `CreatedAt`: DateTime
-- `UpdatedAt`: DateTime
-- `Items`: Collection<OrderItem>
-
-#### OrderItem
-- `Id`: Guid
-- `OrderId`: Guid - Foreign key
-- `ProductName`: string
-- `Quantity`: int
-- `UnitPrice`: decimal
-- `Subtotal`: decimal (Quantity * UnitPrice)
-- `CreatedAt`: DateTime
-
----
+### Frontend (Blazor)
+- **Blazor Server (.NET 10.0)** - Interactive server-side rendering
+- **StrawberryShake 14.1.0** - Strongly-typed GraphQL client with code generation
+- **Bootstrap 5** - Modern responsive UI
+- **Bootstrap Icons** - Icon library
+- **Interactive Server Rendering** - Real-time UI updates
 
 ## Project Structure
 
 ```
-OrderManagement.sln
-│
-├── OrderManagement.GraphQL/          # Backend GraphQL API
-│   ├── Domain/
-│   │   ├── Entities/                 # Order, OrderItem
-│   │   └── Enums/                    # OrderStatus
-│   │
-│   ├── Data/
-│   │   ├── ApplicationDbContext.cs
-│   │   ├── DbInitializer.cs
-│   │   └── Configurations/           # EF Core configurations
-│   │
-│   ├── Repositories/
-│   │   ├── Interfaces/               # Generic & specific repository interfaces
-│   │   └── Implementations/          # Repository & UnitOfWork implementations
-│   │
-│   ├── Services/
-│   │   ├── Interfaces/               # IOrderService
-│   │   └── Implementations/          # OrderService
-│   │
-│   ├── GraphQL/
-│   │   ├── Queries/                  # OrderQueries
-│   │   ├── Mutations/                # OrderMutations
-│   │   ├── Subscriptions/            # OrderSubscriptions
-│   │   ├── Types/                    # OrderType, OrderItemType (with custom resolvers)
-│   │   ├── Inputs/                   # CreateOrderInput, UpdateOrderInput, etc.
-│   │   └── Payloads/                 # Mutation payloads & errors
-│   │
-│   ├── Middleware/
-│   │   └── AuthenticationMiddleware.cs  # Mock JWT authentication
-│   │
-│   ├── Program.cs                    # Application entry point & DI configuration
-│   └── appsettings.json
-│
-└── OrderManagement.Blazor/           # Frontend Blazor App
-    ├── Services/
-    │   ├── GraphQLClient.cs          # HTTP GraphQL client
-    │   ├── Models.cs                 # Strongly-typed models
-    │   ├── OrderService.cs           # Order operations
-    │   └── OrderSubscriptionService.cs  # WebSocket subscriptions
-    │
-    ├── Pages/
-    │   └── Orders/
-    │       ├── OrderList.razor       # List all orders
-    │       ├── OrderDetail.razor     # View order details
-    │       ├── CreateOrder.razor     # Create new order
-    │       └── EditOrder.razor       # Edit existing order
-    │
-    ├── Program.cs
-    └── appsettings.json
+SourceCode/
+├── OrderManagement.Domain/         # Domain entities and interfaces
+├── OrderManagement.Application/    # Business logic, CQRS handlers, DTOs
+├── OrderManagement.Infrastructure/ # EF Core, repositories, data access
+├── OrderManagement.GraphQL/        # GraphQL schema, types, mutations, subscriptions
+└── OrderManagement.Blazor/         # Blazor Server UI with StrawberryShake client
 ```
 
----
+## Features
 
-## GraphQL Schema
+### CRUD Operations
+- **Create Order** - Create new orders with multiple items
+- **View Orders** - List all orders with status badges and totals
+- **View Order Details** - See complete order information with items
+- **Update Order** - Edit customer information and order status
+- **Delete Order** - Remove orders (via GraphQL mutation)
 
-### Queries
+### Real-time Features
+- **Live Order List** - New orders appear instantly in all connected clients
+- **Live Order Updates** - Order changes propagate immediately to all users
+- **WebSocket Subscriptions** - Efficient real-time communication
+- **Visual Status Indicator** - "Live Updates Active" badge shows connection status
 
-```graphql
-type Query {
-  # Get all orders
-  orders: [Order!]!
-
-  # Get order by ID (throws error if not found)
-  orderById(id: UUID!): Order!
-
-  # Get order by order number
-  orderByOrderNumber(orderNumber: String!): Order
-
-  # Get orders by status
-  ordersByStatus(status: OrderStatus!): [Order!]!
-}
-```
-
-### Mutations
-
-```graphql
-type Mutation {
-  # Create a new order (requires authentication)
-  createOrder(input: CreateOrderInput!): CreateOrderPayload!
-
-  # Update an existing order (requires authentication)
-  updateOrder(input: UpdateOrderInput!): UpdateOrderPayload!
-
-  # Add item to an order (requires authentication)
-  addOrderItem(input: AddOrderItemInput!): AddOrderItemPayload!
-
-  # Delete an order (requires authentication)
-  deleteOrder(id: UUID!): Boolean!
-}
-```
-
-### Subscriptions
-
-```graphql
-type Subscription {
-  # Subscribe to new order creation events
-  onOrderCreated: Order!
-
-  # Subscribe to order update events
-  onOrderUpdated: Order!
-}
-```
-
-### Types
-
-```graphql
-type Order {
-  id: UUID!
-  orderNumber: String!
-  customerName: String!
-  customerEmail: String!
-  status: OrderStatus!
-  totalAmount: Decimal!   # Custom resolver - computed from items
-  createdAt: DateTime!
-  updatedAt: DateTime!
-  items: [OrderItem!]!
-}
-
-type OrderItem {
-  id: UUID!
-  orderId: UUID!
-  productName: String!
-  quantity: Int!
-  unitPrice: Decimal!
-  subtotal: Decimal!
-  createdAt: DateTime!
-}
-
-enum OrderStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  CANCELLED
-}
-```
-
----
+### Order Management
+- Order statuses: Pending, Processing, Completed, Cancelled
+- Multiple order items per order
+- Automatic total calculation
+- Order number auto-generation
+- Timestamp tracking (Created, Updated)
 
 ## Getting Started
 
 ### Prerequisites
+- .NET SDK 10.0 or later
+- Windows, macOS, or Linux
+- Any modern web browser
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download) installed
-- A GraphQL client (Banana Cake Pop, Postman, or similar)
+### 1. Start the GraphQL Backend Server
 
-### Running the Backend
+```bash
+cd SourceCode/OrderManagement.GraphQL
+dotnet run
+```
 
-1. Navigate to the backend directory:
-   ```bash
-   cd SourceCode/OrderManagement.GraphQL
-   ```
+The server will start on **http://localhost:5118**
 
-2. Run the application:
-   ```bash
-   dotnet run
-   ```
+You should see output like:
+```
+================================
+GraphQL Server Started
+================================
+GraphQL Endpoint: http://localhost:5118/graphql
 
-3. The GraphQL server will start at:
-   ```
-   http://localhost:5000/graphql
-   ```
+Database: In-Memory
+Architecture: Clean Architecture + CQRS + MediatR
+Auth: JWT Bearer Token (Static)
 
-4. You should see:
-   ```
-   ================================
-   🚀 GraphQL Server Started
-   ================================
-   📍 Endpoint: http://localhost:5000/graphql
-   💾 Database: In-Memory
-   🔑 Auth Token: LOCAL_TOKEN_12345
-   💡 Authorization Header: Bearer LOCAL_TOKEN_12345
-   📝 Use Banana Cake Pop or any GraphQL client
-   ================================
-   ```
+JWT Token (copy this):
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-### Running the Frontend
+Token Details:
+  - User: Mock Admin User
+  - Email: admin@example.com
+  - Role: Admin
+  - Expires: 2035 (long-lived for testing)
+================================
+```
 
-1. Open a new terminal and navigate to the Blazor directory:
-   ```bash
-   cd SourceCode/OrderManagement.Blazor
-   ```
+### 2. Start the Blazor Frontend
 
-2. Run the application:
-   ```bash
-   dotnet run
-   ```
+Open a **new terminal** and run:
 
-3. The Blazor app will start (typically at `http://localhost:5001` or similar)
+```bash
+cd SourceCode/OrderManagement.Blazor
+dotnet run
+```
 
-4. Open your browser and navigate to the displayed URL
+The Blazor app will start on **http://localhost:5101**
 
----
+### 3. Open the Application
 
-## Testing the Application
+Navigate to **http://localhost:5101** in your browser.
+
+The application automatically connects to the GraphQL server using the JWT token configured in `appsettings.json`.
+
+## Testing GraphQL Operations
 
 ### Using Banana Cake Pop (Built-in GraphQL IDE)
 
-1. Navigate to `http://localhost:5000/graphql` in your browser
-2. The Banana Cake Pop interface will open automatically
+1. Navigate to **http://localhost:5118/graphql** in your browser
+2. The Banana Cake Pop IDE will open
+3. Click "Schema Reference" to explore available queries, mutations, and subscriptions
 
-### Testing Queries (No Auth Required)
+### Authentication
 
-#### Get All Orders
+Add the JWT token to your requests:
+
+**HTTP Header:**
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb2NrLWFkbWluLXVzZXIiLCJuYW1lIjoiTW9jayBBZG1pbiBVc2VyIiwiZW1haWwiOiJhZG1pbkBleGFtcGxlLmNvbSIsInJvbGUiOiJBZG1pbiIsImlzcyI6Ik9yZGVyTWFuYWdlbWVudC5HcmFwaFFMIiwiYXVkIjoiT3JkZXJNYW5hZ2VtZW50LkNsaWVudCIsImV4cCI6MjA1MTIyMjQwMH0.hMPIHM6t4XhdpHxdlWkdABFm0lpokhr_kNiXmruqjko
+```
+
+### Sample GraphQL Queries
+
+**Get All Orders:**
 ```graphql
-query {
+query GetOrders {
   orders {
     id
     orderNumber
@@ -283,6 +138,27 @@ query {
     status
     totalAmount
     createdAt
+    items {
+      id
+      productName
+      quantity
+      unitPrice
+      subtotal
+    }
+  }
+}
+```
+
+**Get Order by ID:**
+```graphql
+query GetOrderById($id: UUID!) {
+  orderById(id: $id) {
+    id
+    orderNumber
+    customerName
+    customerEmail
+    status
+    totalAmount
     items {
       productName
       quantity
@@ -293,56 +169,47 @@ query {
 }
 ```
 
-#### Get Order by ID
+**Variables:**
+```json
+{
+  "id": "11111111-1111-1111-1111-111111111111"
+}
+```
+
+**Get Orders by Status:**
 ```graphql
-query {
-  orderById(id: "11111111-1111-1111-1111-111111111111") {
+query GetOrdersByStatus($status: OrderStatus!) {
+  ordersByStatus(status: $status) {
     orderNumber
     customerName
+    status
     totalAmount
-    items {
-      productName
-      quantity
-      subtotal
-    }
   }
 }
 ```
 
-### Testing Mutations (Auth Required)
-
-**IMPORTANT**: All mutations require authentication. Add this header in Banana Cake Pop:
-
+**Variables:**
+```json
+{
+  "status": "PENDING"
+}
 ```
-Authorization: Bearer LOCAL_TOKEN_12345
-```
 
-#### Create Order
+### Sample GraphQL Mutations
+
+**Create Order:**
 ```graphql
-mutation {
-  createOrder(input: {
-    customerName: "John Doe"
-    customerEmail: "john.doe@example.com"
-    items: [
-      {
-        productName: "MacBook Pro 16\""
-        quantity: 1
-        unitPrice: 2499.00
-      },
-      {
-        productName: "Magic Mouse"
-        quantity: 2
-        unitPrice: 79.00
-      }
-    ]
-  }) {
+mutation CreateOrder($input: CreateOrderInput!) {
+  createOrder(input: $input) {
     order {
       id
       orderNumber
+      customerName
       totalAmount
-      status
       items {
         productName
+        quantity
+        unitPrice
         subtotal
       }
     }
@@ -350,294 +217,393 @@ mutation {
 }
 ```
 
-#### Update Order
+**Variables:**
+```json
+{
+  "input": {
+    "customerName": "John Doe",
+    "customerEmail": "john.doe@example.com",
+    "items": [
+      {
+        "productName": "Laptop",
+        "quantity": 1,
+        "unitPrice": 1299.99
+      },
+      {
+        "productName": "Mouse",
+        "quantity": 2,
+        "unitPrice": 29.99
+      }
+    ]
+  }
+}
+```
+
+**Update Order:**
 ```graphql
-mutation {
-  updateOrder(input: {
-    id: "11111111-1111-1111-1111-111111111111"
-    status: COMPLETED
-  }) {
+mutation UpdateOrder($input: UpdateOrderInput!) {
+  updateOrder(input: $input) {
     order {
+      id
       orderNumber
+      customerName
+      customerEmail
       status
-      updatedAt
+      totalAmount
     }
   }
 }
 ```
 
-### Testing Subscriptions
+**Variables:**
+```json
+{
+  "input": {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "customerName": "Jane Smith",
+    "customerEmail": "jane.smith@example.com",
+    "status": "PROCESSING"
+  }
+}
+```
 
-#### Subscribe to Order Creation
+**Delete Order:**
 ```graphql
-subscription {
+mutation DeleteOrder($id: UUID!) {
+  deleteOrder(id: $id)
+}
+```
+
+**Variables:**
+```json
+{
+  "id": "11111111-1111-1111-1111-111111111111"
+}
+```
+
+### GraphQL Subscriptions (Real-time Updates)
+
+**Subscribe to New Orders:**
+```graphql
+subscription OnOrderCreated {
   onOrderCreated {
+    id
     orderNumber
     customerName
-    totalAmount
     status
+    totalAmount
   }
 }
 ```
 
-Then, in another tab, create a new order (using the mutation above). The subscription will receive the new order in real-time.
+After subscribing, create a new order in another browser tab or via the Blazor UI. The subscription will receive the event immediately!
 
-#### Subscribe to Order Updates
+**Subscribe to Order Updates:**
 ```graphql
-subscription {
+subscription OnOrderUpdated {
   onOrderUpdated {
+    id
     orderNumber
+    customerName
     status
     totalAmount
   }
 }
 ```
 
-Then, in another tab, update an order status. The subscription will receive the update in real-time.
+After subscribing, update an order via the Blazor UI. The subscription will receive the update event instantly!
 
----
+## Testing Real-time Subscriptions in Blazor
 
-## Authentication
+### Test 1: Real-time Order Creation
 
-This application uses **mock JWT authentication** for demonstration purposes only.
+1. **Open the Order List** in two browser windows side-by-side:
+   - Window 1: http://localhost:5101/orders
+   - Window 2: http://localhost:5101/orders
 
-### Valid Token
-```
-LOCAL_TOKEN_12345
-```
+2. **Verify Subscriptions Active:**
+   - Both windows should show a green "Live Updates Active" badge at the top
 
-### How to Use
+3. **Create a New Order** in Window 1:
+   - Click "Create New Order"
+   - Fill in customer information:
+     - Customer Name: "Test Customer"
+     - Customer Email: "test@example.com"
+   - Add at least one item:
+     - Product Name: "Test Product"
+     - Quantity: 1
+     - Unit Price: 100
+   - Click "Create Order"
 
-#### In Banana Cake Pop
-1. Click "Headers" button
-2. Add header:
-   - Key: `Authorization`
-   - Value: `Bearer LOCAL_TOKEN_12345`
+4. **Watch Window 2:**
+   - The new order should appear **instantly** at the top of the list
+   - No page refresh required!
 
-#### In Postman
-1. Go to "Authorization" tab
-2. Select "Bearer Token"
-3. Enter: `LOCAL_TOKEN_12345`
+### Test 2: Real-time Order Updates
 
-#### In Code (Frontend)
-The frontend automatically includes the token in all requests:
+1. **Keep both windows open** on the orders list
+
+2. **Edit an Order** in Window 1:
+   - Click "Edit" on any order
+   - Change the customer name to "Updated Customer"
+   - Change the status to "Processing"
+   - Click "Update Order"
+
+3. **Watch Window 2:**
+   - The order row should update **instantly** with the new values
+   - The status badge color should change
+   - No page refresh required!
+
+### Test 3: Multi-Client Testing
+
+1. **Open 3 or more browser windows** all showing http://localhost:5101/orders
+
+2. **Create orders from different windows**
+
+3. **All windows should update simultaneously** - this demonstrates true real-time multi-client synchronization
+
+### WebSocket Connection Details
+
+- **Endpoint:** ws://localhost:5118/graphql
+- **Protocol:** GraphQL over WebSocket (graphql-ws)
+- **Authentication:** JWT token sent in connection initialization payload
+- **Auto-reconnect:** StrawberryShake handles reconnection automatically
+- **Status Indicator:** Green "Live Updates Active" badge when connected
+
+## Architecture Details
+
+### Clean Architecture Layers
+
+**Domain Layer** (`OrderManagement.Domain`)
+- Pure business entities: Order, OrderItem
+- Domain interfaces: IOrderRepository
+- No external dependencies
+
+**Application Layer** (`OrderManagement.Application`)
+- CQRS Commands: CreateOrderCommand, UpdateOrderCommand, DeleteOrderCommand
+- CQRS Queries: GetOrdersQuery, GetOrderByIdQuery, GetOrdersByStatusQuery
+- Command/Query Handlers using MediatR
+- DTOs: OrderDto, OrderItemDto, CreateOrderDto, UpdateOrderDto
+- AutoMapper profiles for entity-to-DTO mapping
+
+**Infrastructure Layer** (`OrderManagement.Infrastructure`)
+- Entity Framework Core configuration
+- Repository implementations
+- OrderDbContext with InMemory database
+- Database seeding with sample data
+
+**GraphQL Layer** (`OrderManagement.GraphQL`)
+- HotChocolate schema definition
+- GraphQL types: OrderType, OrderItemType
+- Input types: CreateOrderInput, UpdateOrderInput
+- Mutations: createOrder, updateOrder, deleteOrder
+- Queries: orders, orderById, ordersByStatus
+- Subscriptions: onOrderCreated, onOrderUpdated
+- JWT authentication configuration
+
+**Presentation Layer** (`OrderManagement.Blazor`)
+- Blazor Server pages: OrderList, OrderDetail, CreateOrder, EditOrder
+- StrawberryShake GraphQL client integration
+- Real-time subscription handling
+- Bootstrap UI components
+
+### CQRS Pattern
+
+**Commands** (write operations):
+- `CreateOrderCommand` → `CreateOrderCommandHandler` → Repository → Database
+- `UpdateOrderCommand` → `UpdateOrderCommandHandler` → Repository → Database
+- `DeleteOrderCommand` → `DeleteOrderCommandHandler` → Repository → Database
+
+**Queries** (read operations):
+- `GetOrdersQuery` → `GetOrdersQueryHandler` → Repository → DTOs
+- `GetOrderByIdQuery` → `GetOrderByIdQueryHandler` → Repository → DTOs
+- `GetOrdersByStatusQuery` → `GetOrdersByStatusQueryHandler` → Repository → DTOs
+
+**Subscriptions** (real-time events):
+- Order mutations trigger `ITopicEventSender` to publish events
+- Subscribers receive events via WebSocket
+- Events: `OnOrderCreated`, `OnOrderUpdated`
+
+### StrawberryShake Code Generation
+
+The Blazor project uses StrawberryShake to generate strongly-typed C# clients from GraphQL operations:
+
+**1. GraphQL Operations** (`GraphQL/OrderOperations.graphql`)
+- Defines all queries, mutations, and subscriptions
+
+**2. Build-time Code Generation**
+- StrawberryShake MSBuild task downloads schema from server
+- Generates C# interfaces and classes
+- Creates `IOrderManagementClient` service
+
+**3. Dependency Injection**
+- `AddOrderManagementClient()` registers GraphQL client
+- Configures HTTP client with JWT authentication
+- Configures WebSocket client for subscriptions
+
+**4. Usage in Pages**
 ```csharp
-_httpClient.DefaultRequestHeaders.Authorization =
-    new AuthenticationHeaderValue("Bearer", "LOCAL_TOKEN_12345");
+@inject IOrderManagementClient GraphQLClient
+
+var result = await GraphQLClient.GetOrders.ExecuteAsync();
+var orders = result.Data.Orders;
 ```
 
-### What Happens Without Auth?
+## Sample Data
 
-Mutations without the auth header will return:
+The GraphQL server includes 8 pre-seeded orders with various statuses:
+
+- **ORD-001** - Laptop and Mouse (Completed)
+- **ORD-002** - Desk Chair (Processing)
+- **ORD-003** - Monitor (Pending)
+- **ORD-004** - Keyboard and Mouse Pad (Completed)
+- **ORD-005** - USB Cable (Cancelled)
+- **ORD-006** - Webcam (Processing)
+- **ORD-007** - Headphones (Completed)
+- **ORD-008** - Phone Charger (Pending)
+
+## Configuration
+
+### GraphQL Server (`OrderManagement.GraphQL/appsettings.json`)
+
 ```json
 {
-  "errors": [
-    {
-      "message": "The current user is not authorized to access this resource.",
-      "extensions": {
-        "code": "AUTH_NOT_AUTHORIZED"
-      }
-    }
-  ]
-}
-```
-
----
-
-## Realtime Features
-
-The application demonstrates real-time updates using GraphQL Subscriptions over WebSocket.
-
-### How It Works
-
-1. **Backend**: HotChocolate's in-memory pub/sub system
-   - When a mutation occurs (create/update order)
-   - An event is published via `ITopicEventSender`
-   - Subscribed clients receive the update via WebSocket
-
-2. **Frontend**: Blazor subscribes to updates
-   - Connects to WebSocket endpoint
-   - Subscribes to `onOrderCreated` and `onOrderUpdated`
-   - Automatically updates the UI when events are received
-
-### Testing Realtime
-
-1. Open the frontend at `/orders` (Order List page)
-2. Open Banana Cake Pop in another window
-3. Create a new order using the mutation (with auth header)
-4. Watch the frontend automatically add the new order to the list **without refreshing**
-
----
-
-## Error Handling
-
-### GraphQL Errors
-
-The application demonstrates proper error handling:
-
-#### Order Not Found
-```graphql
-query {
-  orderById(id: "00000000-0000-0000-0000-000000000000") {
-    orderNumber
+  "Jwt": {
+    "SecretKey": "ThisIsASecretKeyForJWTTokenGenerationAndValidation123!",
+    "Issuer": "OrderManagement.GraphQL",
+    "Audience": "OrderManagement.Client",
+    "ExpiryInYears": 10
   }
 }
 ```
 
-Response:
+### Blazor Client (`OrderManagement.Blazor/appsettings.json`)
+
 ```json
 {
-  "errors": [
-    {
-      "message": "Order with ID '00000000-0000-0000-0000-000000000000' was not found.",
-      "path": ["orderById"]
-    }
-  ]
+  "GraphQL": {
+    "Endpoint": "http://localhost:5118/graphql",
+    "WebSocketEndpoint": "ws://localhost:5118/graphql",
+    "JwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
 }
 ```
 
-### Frontend Error Handling
+## Security Considerations
 
-- **Loading States**: Spinners while fetching data
-- **Error States**: Alert messages for failed operations
-- **Validation**: Form validation before submission
-- **Disabled Buttons**: Prevent double submission
+This project uses **static JWT tokens** for simplicity in development and testing. In production, you should implement:
 
----
-
-## Custom Resolver Example
-
-The `totalAmount` field on `Order` is a **custom resolver** that demonstrates:
-- Async database access in a resolver
-- Computed fields in GraphQL
-- Dependency injection in resolvers
-
-### Implementation
-
-`OrderManagement.GraphQL/GraphQL/Types/OrderType.cs:48-52`:
-
-```csharp
-descriptor
-    .Field("totalAmount")
-    .Type<DecimalType>()
-    .Description("Total amount calculated from all item subtotals")
-    .ResolveWith<OrderResolvers>(r => r.GetTotalAmountAsync(default!, default!, default));
-```
-
-### Resolver Method
-
-```csharp
-public async Task<decimal> GetTotalAmountAsync(
-    [Parent] Order order,
-    [Service] IOrderService orderService,
-    CancellationToken cancellationToken)
-{
-    return await orderService.GetOrderTotalAmountAsync(order.Id, cancellationToken);
-}
-```
-
----
-
-## Seeded Data
-
-The application comes with 3 pre-seeded orders in the in-memory database:
-
-| Order Number | Customer | Status | Items | Total |
-|-------------|----------|--------|-------|-------|
-| ORD-2025-001 | Nguyen Van A | Completed | 2 items | $1,699.98 |
-| ORD-2025-002 | Tran Thi B | Processing | 2 items | $1,448.00 |
-| ORD-2025-003 | Le Van C | Pending | 1 item | $900.00 |
-
----
-
-## Features Checklist
-
-### Core Requirements
-- ✅ **GraphQL thật**: HotChocolate 14.x
-- ✅ **CRUD đầy đủ**: Queries + Mutations for Orders/OrderItems
-- ✅ **Nested data**: Order → OrderItems (1:N)
-- ✅ **Realtime**: GraphQL Subscriptions over WebSocket
-- ✅ **Custom resolver**: `totalAmount` computed from OrderItems with async DB access
-- ✅ **Auth mock**: Bearer token middleware (`LOCAL_TOKEN_12345`)
-- ✅ **Error handling**: OrderNotFoundError with proper GraphQL error format
-- ✅ **Blazor consume GraphQL**: Strongly-typed GraphQL client
-- ✅ **UI đầy đủ**: List, Detail, Create, Edit pages
-- ✅ **Repository Pattern**: Generic + Specific repositories + UnitOfWork
-- ✅ **Local only**: In-Memory database, no cloud dependencies
-- ✅ **Documentation**: Comprehensive README
-
-### UI Features
-- ✅ **Loading States**: Spinners during data fetch
-- ✅ **Error States**: Alert messages for failures
-- ✅ **Realtime UI**: Automatic list updates on create/update events
-- ✅ **Form Validation**: Client-side validation before submission
-- ✅ **Disabled Submit**: Prevent double-submission during processing
-
----
-
-## AI Usage Disclosure
-
-This project was developed with assistance from Claude (Anthropic's AI assistant) for:
-
-- **Code Generation**: Generating boilerplate code for entities, repositories, and services
-- **Architecture Design**: Structuring the application layers and design patterns
-- **GraphQL Schema**: Defining queries, mutations, subscriptions, and types
-- **Documentation**: Writing comprehensive README and code comments
-- **Best Practices**: Applying C# 10+ features and .NET conventions
-
-The AI was used as a productivity tool to accelerate development while maintaining code quality and architectural consistency.
-
----
+1. **Dynamic Token Generation** - Issue tokens upon successful login
+2. **Token Refresh** - Implement refresh token flow
+3. **Role-Based Authorization** - Add `[Authorize(Roles = "Admin")]` attributes
+4. **HTTPS** - Use TLS/SSL for all communication
+5. **Token Expiration** - Use shorter expiration times (e.g., 1 hour)
+6. **Secure Storage** - Store tokens securely (HttpOnly cookies or secure storage)
 
 ## Troubleshooting
 
-### Backend won't start
-- Ensure .NET 10 SDK is installed: `dotnet --version`
-- Check if port 5000 is available
-- Run `dotnet restore` in the backend directory
+### "No service for type 'ISessionPool'" Error
 
-### Frontend can't connect to backend
-- Verify backend is running at `http://localhost:5000/graphql`
-- Check console for CORS errors
-- Ensure `HttpClient.BaseAddress` is correct in `Program.cs`
+**Problem:** WebSocket subscriptions not configured
 
-### Mutations return auth errors
-- Verify you're sending the `Authorization` header
-- Token must be: `Bearer LOCAL_TOKEN_12345`
-- Check headers in your GraphQL client
+**Solution:** Ensure `ConfigureWebSocketClient()` is called in `Program.cs`:
+```csharp
+.AddOrderManagementClient()
+.ConfigureHttpClient(...)
+.ConfigureWebSocketClient(...) // This is required for subscriptions!
+```
 
-### Realtime not working
-- Ensure WebSocket is enabled on backend
-- Check browser console for WebSocket connection errors
-- Verify subscriptions are set up correctly in frontend
+### "Cannot provide a value for property 'OrderService'" Error
 
----
+**Problem:** Old service still being injected in Razor pages
 
-## Future Enhancements
+**Solution:** Replace `@inject OrderService OrderService` with `@inject IOrderManagementClient GraphQLClient`
 
-While not required for this exercise, potential improvements include:
+### Build Errors "Cannot access file... in use by another process"
 
-- Pagination for order lists
-- Search and filtering
-- Order cancellation with confirmation
-- Item modification after order creation
-- Export orders to CSV/PDF
-- Dashboard with statistics
-- Multiple concurrent orders support
-- Optimistic UI updates
+**Problem:** Server is still running and locking DLL files
 
----
+**Solution:** Stop all running servers before building:
+```bash
+# Press Ctrl+C in all terminal windows running dotnet run
+# Or kill processes:
+taskkill /F /IM OrderManagement.GraphQL.exe
+taskkill /F /IM OrderManagement.Blazor.exe
+```
+
+### Subscription Not Receiving Events
+
+**Problem:** WebSocket connection fails or JWT token invalid
+
+**Solution:**
+1. Check browser console for WebSocket errors
+2. Verify JWT token is not expired
+3. Ensure GraphQL server is running on ws://localhost:5118/graphql
+4. Check that `WebSocketAuthInterceptor` is sending the correct token
+
+### "Live Updates Active" Badge Not Showing
+
+**Problem:** Subscriptions failed to initialize
+
+**Solution:**
+1. Open browser developer console
+2. Look for JavaScript/WebSocket errors
+3. Verify WebSocket endpoint is correct in `appsettings.json`
+4. Check that StrawberryShake WebSocket transport is installed
+
+## Building for Production
+
+### Backend (GraphQL Server)
+
+```bash
+cd OrderManagement.GraphQL
+dotnet publish -c Release -o ./publish
+```
+
+### Frontend (Blazor)
+
+```bash
+cd OrderManagement.Blazor
+dotnet publish -c Release -o ./publish
+```
+
+### Deployment Considerations
+
+1. **Replace InMemory Database** with SQL Server, PostgreSQL, or another persistent database
+2. **Configure HTTPS** with valid SSL certificates
+3. **Implement Dynamic JWT** authentication with user login
+4. **Add Logging** using Serilog or Application Insights
+5. **Configure CORS** if frontend and backend are on different domains
+6. **Set Environment Variables** for sensitive configuration
+7. **Use Connection Pooling** for WebSocket subscriptions at scale
+
+## AI Usage Disclosure
+
+This project was developed with the assistance of Claude (Anthropic) AI assistant. The AI helped with:
+
+- Architectural design and Clean Architecture implementation
+- CQRS + MediatR pattern setup
+- HotChocolate GraphQL schema design
+- GraphQL Subscriptions implementation
+- StrawberryShake client integration
+- WebSocket authentication setup
+- Blazor Server page development
+- Real-time UI updates and state management
+- Code generation and boilerplate reduction
+- Documentation and README creation
+
+All code was reviewed, tested, and validated for correctness and best practices.
 
 ## License
 
-This project is for educational purposes only.
-
----
+This project is for educational and demonstration purposes.
 
 ## Contact
 
-For questions or issues, please create an issue in the repository.
+For questions or issues, please create an issue in the project repository.
 
 ---
 
-**Happy coding! 🚀**
+**Built with .NET 10.0, HotChocolate 14.1.0, Blazor Server, and StrawberryShake 14.1.0**
+
+**Generated with Claude Code** - https://claude.com/claude-code

@@ -36,6 +36,13 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .OrderByDescending(o => o.CreatedAt);
     }
 
+    public IQueryable<Order> GetOrdersQueryable()
+    {
+        // NO Include - optimized for list view without items
+        return _dbSet
+            .OrderByDescending(o => o.CreatedAt);
+    }
+
     public async Task<IEnumerable<Order>> GetOrdersByStatusAsync(OrderStatus status, CancellationToken cancellationToken = default)
     {
         return await _dbSet

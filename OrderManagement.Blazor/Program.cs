@@ -1,5 +1,6 @@
 using OrderManagement.Blazor.Components;
 using OrderManagement.Blazor.GraphQL;
+using OrderManagement.Blazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,7 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Add StrawberryShake GraphQL Client
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(Program));
+
+// Add StrawberryShake GraphQL Client with WebSocket support
 builder.Services
     .AddOrderManagementClient()
     .ConfigureHttpClient((sp, client) =>
@@ -19,6 +23,15 @@ builder.Services
         client.BaseAddress = new Uri(endpoint);
         client.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    })
+    .ConfigureWebSocketClient((sp, client) =>
+    {
+        var config = sp.GetRequiredService<IConfiguration>();
+        var wsEndpoint = config["GraphQL:WebSocketEndpoint"]!;
+        var token = config["GraphQL:JwtToken"]!;
+
+        client.Uri = new Uri(wsEndpoint);
+        client.ConnectionInterceptor = new WebSocketAuthInterceptor(token);
     });
 
 var app = builder.Build();

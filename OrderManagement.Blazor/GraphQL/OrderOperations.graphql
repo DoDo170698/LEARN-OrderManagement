@@ -1,0 +1,202 @@
+# ============================================
+# OPTIMIZED QUERY 1: Get Orders List (NO items)
+# Use this for listing pages - only basic order info
+# ============================================
+query GetOrdersList(
+  $first: Int
+  $after: String
+  $last: Int
+  $before: String
+  $where: OrderFilterInput
+  $order: [OrderSortInput!]
+) {
+  orders(
+    first: $first
+    after: $after
+    last: $last
+    before: $before
+    where: $where
+    order: $order
+  ) {
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        orderNumber
+        customerName
+        customerEmail
+        status
+        createdAt
+        updatedAt
+        # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
+      }
+    }
+  }
+}
+
+# ============================================
+# OPTIMIZED QUERY 2: Get Order Details with Items
+# Use this for detail pages - includes all items
+# Note: orderById returns OrderDto (not Order entity)
+# ============================================
+query GetOrderDetails($orderId: UUID!) {
+  orderById(id: $orderId) {
+    id
+    orderNumber
+    customerName
+    customerEmail
+    status
+    totalAmount
+    createdAt
+    updatedAt
+    items {
+      id
+      productName
+      quantity
+      unitPrice
+      subtotal
+    }
+  }
+}
+
+# ============================================
+# OPTIMIZED QUERY 3: Get Orders By Status (NO items)
+# Filter orders by status - minimal payload
+# ============================================
+query GetOrdersByStatus($status: OrderStatus!) {
+  ordersByStatus(status: $status) {
+    id
+    orderNumber
+    customerName
+    customerEmail
+    status
+    createdAt
+    updatedAt
+    # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
+  }
+}
+
+# ============================================
+# OPTIMIZED MUTATION 1: Create Order (NO items in response)
+# Items already provided in input, no need to return them
+# ============================================
+mutation CreateOrder($input: CreateOrderInput!) {
+  createOrder(input: $input) {
+    order {
+      id
+      orderNumber
+      customerName
+      customerEmail
+      status
+      createdAt
+      updatedAt
+      # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
+    }
+  }
+}
+
+# ============================================
+# OPTIMIZED MUTATION 2: Update Order (NO items in response)
+# Only returns updated order fields
+# ============================================
+mutation UpdateOrder($input: UpdateOrderInput!) {
+  updateOrder(input: $input) {
+    order {
+      id
+      orderNumber
+      customerName
+      customerEmail
+      status
+      createdAt
+      updatedAt
+      # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
+    }
+  }
+}
+
+# Mutation to delete an order
+mutation DeleteOrder($id: UUID!) {
+  deleteOrder(id: $id)
+}
+
+# ============================================
+# OPTIMIZED QUERY 4: Get Order Items (with paging)
+# Use this for displaying order items with pagination
+# ============================================
+query GetOrderItemsList(
+  $orderId: UUID!
+  $first: Int
+  $after: String
+  $last: Int
+  $before: String
+  $where: OrderItemFilterInput
+  $order: [OrderItemSortInput!]
+) {
+  orderItems(
+    orderId: $orderId
+    first: $first
+    after: $after
+    last: $last
+    before: $before
+    where: $where
+    order: $order
+  ) {
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        productName
+        quantity
+        unitPrice
+        subtotal
+        createdAt
+      }
+    }
+  }
+}
+
+# ============================================
+# OPTIMIZED SUBSCRIPTION 1: Order Created (NO items)
+# Realtime update when new order created - minimal payload
+# ============================================
+subscription OnOrderCreated {
+  onOrderCreated {
+    id
+    orderNumber
+    customerName
+    customerEmail
+    status
+    createdAt
+    updatedAt
+    # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
+  }
+}
+
+# ============================================
+# OPTIMIZED SUBSCRIPTION 2: Order Updated (NO items)
+# Realtime update when order updated - minimal payload
+# ============================================
+subscription OnOrderUpdated {
+  onOrderUpdated {
+    id
+    orderNumber
+    customerName
+    customerEmail
+    status
+    createdAt
+    updatedAt
+    # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
+  }
+}

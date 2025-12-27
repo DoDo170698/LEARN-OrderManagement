@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using OrderManagement.Domain.Interfaces;
 using OrderManagement.Infrastructure.Persistence;
@@ -12,7 +13,13 @@ public static class DependencyInjection
     {
         // Add DbContext with InMemory database
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseInMemoryDatabase("OrderManagementDb"));
+        {
+            options.UseInMemoryDatabase("OrderManagementDb");
+
+            // Suppress transaction warning for InMemory database
+            options.ConfigureWarnings(warnings =>
+                warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+        });
 
         // Add Repositories
         services.AddScoped<IUnitOfWork, UnitOfWork>();
