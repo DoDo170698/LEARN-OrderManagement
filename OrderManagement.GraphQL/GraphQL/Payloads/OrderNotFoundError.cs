@@ -6,6 +6,7 @@ namespace OrderManagement.GraphQL.GraphQL.Payloads;
 public class OrderNotFoundError : Exception
 {
     public Guid OrderId { get; }
+    public string ErrorCode { get; } = GraphQL.ErrorCodes.OrderNotFound;
 
     public OrderNotFoundError(Guid orderId)
         : base($"Order with ID '{orderId}' was not found.")

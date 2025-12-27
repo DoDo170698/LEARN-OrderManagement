@@ -14,8 +14,8 @@ type Mutation {
 type Order {
   "Order items with pagination support"
   items("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ItemsConnection
-  "Total amount calculated from all order items"
-  totalAmount: Decimal
+  "Total amount of the order"
+  totalAmount: Decimal!
   id: UUID!
   orderNumber: String!
   customerName: String!
@@ -112,6 +112,7 @@ input OrderFilterInput {
   customerName: StringOperationFilterInput
   customerEmail: StringOperationFilterInput
   status: OrderStatusOperationFilterInput
+  totalAmount: DecimalOperationFilterInput
   createdAt: DateTimeOperationFilterInput
   updatedAt: DateTimeOperationFilterInput
   items: ListFilterInputTypeOfOrderItemFilterInput
@@ -123,6 +124,7 @@ input OrderSortInput {
   customerName: SortEnumType
   customerEmail: SortEnumType
   status: SortEnumType
+  totalAmount: SortEnumType
   createdAt: SortEnumType
   updatedAt: SortEnumType
 }
@@ -174,6 +176,21 @@ input OrderStatusOperationFilterInput {
   neq: OrderStatus
   in: [OrderStatus!]
   nin: [OrderStatus!]
+}
+
+input DecimalOperationFilterInput {
+  eq: Decimal
+  neq: Decimal
+  in: [Decimal]
+  nin: [Decimal]
+  gt: Decimal
+  ngt: Decimal
+  gte: Decimal
+  ngte: Decimal
+  lt: Decimal
+  nlt: Decimal
+  lte: Decimal
+  nlte: Decimal
 }
 
 input DateTimeOperationFilterInput {
@@ -237,21 +254,6 @@ input IntOperationFilterInput {
   nlt: Int
   lte: Int
   nlte: Int
-}
-
-input DecimalOperationFilterInput {
-  eq: Decimal
-  neq: Decimal
-  in: [Decimal]
-  nin: [Decimal]
-  gt: Decimal
-  ngt: Decimal
-  gte: Decimal
-  ngte: Decimal
-  lt: Decimal
-  nlt: Decimal
-  lte: Decimal
-  nlte: Decimal
 }
 
 input UpdateOrderInput {

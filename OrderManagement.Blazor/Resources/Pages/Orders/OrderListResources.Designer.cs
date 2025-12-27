@@ -421,7 +421,7 @@ namespace OrderManagement.Blazor.Resources.Pages.Orders {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to STATUS.
+        ///   Looks up a localized string similar to Status.
         /// </summary>
         internal static string Status {
             get {
@@ -435,6 +435,15 @@ namespace OrderManagement.Blazor.Resources.Pages.Orders {
         internal static string Title {
             get {
                 return ResourceManager.GetString("Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total.
+        /// </summary>
+        internal static string Total {
+            get {
+                return ResourceManager.GetString("Total", resourceCulture);
             }
         }
         

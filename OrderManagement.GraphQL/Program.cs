@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OrderManagement.Application;
+using OrderManagement.GraphQL.GraphQL.Filters;
 using OrderManagement.GraphQL.GraphQL.Mutations;
 using OrderManagement.GraphQL.GraphQL.Queries;
 using OrderManagement.GraphQL.GraphQL.Types;
@@ -72,6 +73,7 @@ builder.Services
     .AddSorting()
     .AddInMemorySubscriptions()
     .AddAuthorization()
+    .AddErrorFilter<ErrorFilter>()
     // FIX: Disable cost enforcement to prevent "maximum allowed field cost exceeded" error
     .ModifyCostOptions(options =>
     {

@@ -12,8 +12,7 @@ public class OrderViewModel
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerEmail { get; set; } = string.Empty;
     public OrderStatus Status { get; set; }
-    // REMOVED: TotalAmount - causes field cost exceeded (requires loading all items)
-    // Use GetOrderDetails query to get totalAmount when needed
+    public decimal TotalAmount { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public List<OrderItemViewModel> Items { get; set; } = new();

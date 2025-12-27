@@ -167,6 +167,7 @@ public partial class OrderList : IDisposable
             "ORDER_NUMBER" => new OrderSortInput { OrderNumber = sortDirection },
             "CUSTOMER_NAME" => new OrderSortInput { CustomerName = sortDirection },
             "CUSTOMER_EMAIL" => new OrderSortInput { CustomerEmail = sortDirection },
+            "TOTAL_AMOUNT" => new OrderSortInput { TotalAmount = sortDirection },
             "STATUS" => new OrderSortInput { Status = sortDirection },
             "CREATED_AT" => new OrderSortInput { CreatedAt = sortDirection },
             _ => new OrderSortInput { CreatedAt = sortDirection }

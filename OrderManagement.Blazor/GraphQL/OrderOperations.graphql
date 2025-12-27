@@ -33,9 +33,9 @@ query GetOrdersList(
         customerName
         customerEmail
         status
+        totalAmount
         createdAt
         updatedAt
-        # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
       }
     }
   }
@@ -78,9 +78,9 @@ mutation CreateOrder($input: CreateOrderInput!) {
       customerName
       customerEmail
       status
+      totalAmount
       createdAt
       updatedAt
-      # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
     }
   }
 }
@@ -97,9 +97,9 @@ mutation UpdateOrder($input: UpdateOrderInput!) {
       customerName
       customerEmail
       status
+      totalAmount
       createdAt
       updatedAt
-      # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
     }
   }
 }
@@ -123,9 +123,9 @@ subscription OnOrderCreated {
     customerName
     customerEmail
     status
+    totalAmount
     createdAt
     updatedAt
-    # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
   }
 }
 
@@ -140,9 +140,9 @@ subscription OnOrderUpdated {
     customerName
     customerEmail
     status
+    totalAmount
     createdAt
     updatedAt
-    # REMOVED: totalAmount (requires loading items - causes field cost exceeded)
   }
 }
 

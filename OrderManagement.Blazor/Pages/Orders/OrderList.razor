@@ -7,14 +7,16 @@
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>@OrderListResources.Title</h1>
-        <div>
+        <div class="d-flex align-items-center gap-3">
+            <h1 class="mb-0">@OrderListResources.Title</h1>
             @if (subscriptionsActive)
             {
-                <span class="badge bg-success me-2">
+                <span class="badge bg-success">
                     <i class="bi bi-broadcast"></i> @OrderListResources.LiveUpdatesActive
                 </span>
             }
+        </div>
+        <div>
             <a href="/orders/create" class="btn btn-primary">
                 <i class="bi bi-plus-circle"></i> @OrderListResources.NewOrder
             </a>
@@ -118,6 +120,15 @@
                                         }
                                     </div>
                                 </th>
+                                <th class="border-0" style="cursor: pointer;" @onclick='() => SortByAsync("TOTAL_AMOUNT")'>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-currency-dollar me-2"></i>@OrderListResources.Total
+                                        @if (sortField == "TOTAL_AMOUNT")
+                                        {
+                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
+                                        }
+                                    </div>
+                                </th>
                                 <th class="border-0" style="cursor: pointer;" @onclick='() => SortByAsync("STATUS")'>
                                     <div class="d-flex align-items-center">
                                         <i class="bi bi-flag me-2"></i>@OrderListResources.Status
@@ -154,6 +165,9 @@
                                         <div class="fw-semibold">@order.CustomerName</div>
                                     </td>
                                     <td class="text-muted small">@order.CustomerEmail</td>
+                                    <td>
+                                        <span class="fw-semibold text-success">$@order.TotalAmount.ToString("N2")</span>
+                                    </td>
                                     <td>
                                         <span class="badge @GetStatusBadgeClass(order.Status)">
                                             @order.Status

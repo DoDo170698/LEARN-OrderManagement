@@ -20,15 +20,9 @@ public class OrderType : ObjectType<Order>
             .UsePaging<OrderItemType>()
             .Description("Order items with pagination support");
 
-        // Add computed field: totalAmount
+        // TotalAmount is now a regular property from database, no need for computed field
         descriptor
-            .Field("totalAmount")
-            .Type<DecimalType>()
-            .Description("Total amount calculated from all order items")
-            .Resolve(context =>
-            {
-                var order = context.Parent<Order>();
-                return order.Items?.Sum(item => item.Quantity * item.UnitPrice) ?? 0;
-            });
+            .Field(o => o.TotalAmount)
+            .Description("Total amount of the order");
     }
 }

@@ -101,6 +101,9 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Ord
                         order.Items.Remove(existingItems[i]);
                     }
                 }
+
+                // Recalculate total amount
+                order.TotalAmount = order.Items.Sum(item => item.Quantity * item.UnitPrice);
             }
 
             order.UpdatedAt = DateTime.UtcNow;

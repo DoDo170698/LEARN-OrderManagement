@@ -40,6 +40,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
             // Generate order number
             var orderNumber = await GenerateOrderNumberAsync(cancellationToken);
 
+            // Calculate total amount
+            var totalAmount = command.Items.Sum(item => item.Quantity * item.UnitPrice);
+
             // Create order entity
             var order = new Order
             {
@@ -48,6 +51,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
                 CustomerName = command.CustomerName,
                 CustomerEmail = command.CustomerEmail,
                 Status = OrderStatus.Pending,
+                TotalAmount = totalAmount,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };

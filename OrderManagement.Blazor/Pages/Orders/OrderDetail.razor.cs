@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using OrderManagement.Blazor.GraphQL;
+using OrderManagement.Blazor.Helpers;
 using OrderManagement.Blazor.Resources.Pages.Orders;
 
 namespace OrderManagement.Blazor.Pages.Orders;
@@ -41,7 +42,7 @@ public partial class OrderDetail
             }
             else if (result.Errors?.Count > 0)
             {
-                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
+                errorMessage = ErrorMessageHelper.GetErrorMessage(result);
             }
             else
             {
@@ -101,7 +102,7 @@ public partial class OrderDetail
             }
             else if (result.Errors?.Count > 0)
             {
-                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
+                errorMessage = ErrorMessageHelper.GetErrorMessage(result);
                 showDeleteConfirmation = false;
             }
             else

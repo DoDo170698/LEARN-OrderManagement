@@ -86,7 +86,7 @@
     <value>Order number, customer name, or email...</value>
   </data>
   <data name="Status" xml:space="preserve">
-    <value>STATUS</value>
+    <value>Status</value>
   </data>
   <data name="AllStatuses" xml:space="preserve">
     <value>All Statuses</value>
@@ -130,6 +130,9 @@
   </data>
   <data name="Email" xml:space="preserve">
     <value>Email</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
   </data>
   <data name="Created" xml:space="preserve">
     <value>Created</value>

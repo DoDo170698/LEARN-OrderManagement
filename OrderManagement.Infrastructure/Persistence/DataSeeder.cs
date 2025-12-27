@@ -107,6 +107,9 @@ public static class DataSeeder
                 order.Items.Add(item);
             }
 
+            // Calculate total amount from items
+            order.TotalAmount = order.Items.Sum(item => item.Subtotal);
+
             orders.Add(order);
         }
 
