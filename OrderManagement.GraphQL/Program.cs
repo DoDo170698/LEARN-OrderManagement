@@ -18,7 +18,7 @@ var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 var staticToken = builder.Configuration["Jwt:StaticToken"]!;
 
 // Add Infrastructure Layer (DbContext, Repositories, UnitOfWork)
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Add Application Layer (AutoMapper, FluentValidation, CQRS Handlers)
 builder.Services.AddApplication();
@@ -111,7 +111,7 @@ Console.WriteLine("GraphQL Server Started");
 Console.WriteLine("================================");
 Console.WriteLine($"GraphQL Endpoint: http://localhost:5118/graphql");
 Console.WriteLine("");
-Console.WriteLine("Database: In-Memory");
+Console.WriteLine("Database: SQLite (Databases/ordermanagement.db)");
 Console.WriteLine("Architecture: Clean Architecture + CQRS + MediatR");
 Console.WriteLine("Auth: JWT Bearer Token (Static)");
 Console.WriteLine("");

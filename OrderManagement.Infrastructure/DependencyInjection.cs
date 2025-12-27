@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using OrderManagement.Domain.Interfaces;
 using OrderManagement.Infrastructure.Persistence;
@@ -9,19 +9,15 @@ namespace OrderManagement.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // Add DbContext with InMemory database
-        services.AddDbContext<ApplicationDbContext>(options =>
-        {
-            options.UseInMemoryDatabase("OrderManagementDb");
+        var connectionString = configuration.GetConnectionString("DefaultConnection")!;
 
-            // Suppress transaction warning for InMemory database
-            options.ConfigureWarnings(warnings =>
-                warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+        services.AddDbContextPool<ApplicationDbContext>(options =>
+        {
+            options.UseSqlite(connectionString);
         });
 
-        // Add Repositories
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IOrderItemRepository, OrderItemRepository>();
