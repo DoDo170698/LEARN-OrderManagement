@@ -4,6 +4,7 @@ using OrderManagement.Blazor.GraphQL;
 using OrderManagement.Blazor.Helpers;
 using OrderManagement.Blazor.ViewModels;
 using OrderManagement.Blazor.Resources.Pages.Orders;
+using Microsoft.Extensions.Logging;
 
 namespace OrderManagement.Blazor.Pages.Orders;
 
@@ -12,6 +13,7 @@ public partial class OrderList : IDisposable
     [Inject] private IOrderManagementClient GraphQLClient { get; set; } = default!;
     [Inject] private NavigationManager Navigation { get; set; } = default!;
     [Inject] private IMapper Mapper { get; set; } = default!;
+    [Inject] private ILogger<OrderList> Logger { get; set; } = default!;
 
     private List<OrderViewModel> orders = new();
     private bool isLoading = true;
@@ -90,15 +92,15 @@ public partial class OrderList : IDisposable
         }
         catch (HttpRequestException ex)
         {
-            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrders");
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrders", Logger);
         }
         catch (OperationCanceledException ex)
         {
-            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrders");
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrders", Logger);
         }
         catch (Exception ex)
         {
-            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrders");
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrders", Logger);
         }
         finally
         {
@@ -314,11 +316,11 @@ public partial class OrderList : IDisposable
         }
         catch (HttpRequestException ex)
         {
-            Console.WriteLine($"[Subscription] Network error: {ex.Message}");
+            Logger.LogError(ex, "[Subscription] Network error: {Message}", ex.Message);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Subscription] Failed to setup realtime: {ex.Message}");
+            Logger.LogError(ex, "[Subscription] Failed to setup realtime: {Message}", ex.Message);
         }
     }
 
@@ -368,17 +370,17 @@ public partial class OrderList : IDisposable
         }
         catch (HttpRequestException ex)
         {
-            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder");
+            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder", Logger);
             showDeleteConfirmation = false;
         }
         catch (OperationCanceledException ex)
         {
-            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder");
+            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder", Logger);
             showDeleteConfirmation = false;
         }
         catch (Exception ex)
         {
-            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder");
+            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder", Logger);
             showDeleteConfirmation = false;
         }
         finally

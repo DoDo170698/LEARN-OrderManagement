@@ -82,8 +82,9 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
     await context.Database.EnsureCreatedAsync();
-    await DataSeeder.SeedDataAsync(context);
+    await DataSeeder.SeedDataAsync(context, logger);
 }
 
 app.UseCors();
@@ -92,21 +93,21 @@ app.UseAuthorization();
 app.UseWebSockets();
 app.MapGraphQL();
 
-Console.WriteLine("================================");
-Console.WriteLine("GraphQL Server Started");
-Console.WriteLine("================================");
-Console.WriteLine($"GraphQL Endpoint: http://localhost:5118/graphql");
-Console.WriteLine("");
-Console.WriteLine("Database: SQLite (Databases/ordermanagement.db)");
-Console.WriteLine("Architecture: Clean Architecture + CQRS + MediatR");
-Console.WriteLine("");
-Console.WriteLine("Token Details:");
-Console.WriteLine("  - User: Mock Admin User");
-Console.WriteLine("  - Email: admin@example.com");
-Console.WriteLine("  - Role: Admin");
-Console.WriteLine("  - Expires: 2035 (long-lived for testing)");
-Console.WriteLine("");
-Console.WriteLine("Use Banana Cake Pop or any GraphQL client to test");
-Console.WriteLine("================================");
+app.Logger.LogInformation("================================");
+app.Logger.LogInformation("GraphQL Server Started");
+app.Logger.LogInformation("================================");
+app.Logger.LogInformation("GraphQL Endpoint: http://localhost:5118/graphql");
+app.Logger.LogInformation("");
+app.Logger.LogInformation("Database: SQLite (Databases/ordermanagement.db)");
+app.Logger.LogInformation("Architecture: Clean Architecture + CQRS + MediatR");
+app.Logger.LogInformation("");
+app.Logger.LogInformation("Token Details:");
+app.Logger.LogInformation("  - User: Mock Admin User");
+app.Logger.LogInformation("  - Email: admin@example.com");
+app.Logger.LogInformation("  - Role: Admin");
+app.Logger.LogInformation("  - Expires: 2035 (long-lived for testing)");
+app.Logger.LogInformation("");
+app.Logger.LogInformation("Use Banana Cake Pop or any GraphQL client to test");
+app.Logger.LogInformation("================================");
 
 app.Run();

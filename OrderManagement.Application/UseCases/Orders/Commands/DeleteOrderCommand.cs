@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OrderManagement.Domain.Common;
 using OrderManagement.Domain.Interfaces;
 
@@ -12,10 +13,12 @@ public class DeleteOrderCommand : IRequest<Result<bool>>
 public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, Result<bool>>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<DeleteOrderCommandHandler> _logger;
 
-    public DeleteOrderCommandHandler(IUnitOfWork unitOfWork)
+    public DeleteOrderCommandHandler(IUnitOfWork unitOfWork, ILogger<DeleteOrderCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task<Result<bool>> Handle(DeleteOrderCommand command, CancellationToken cancellationToken = default)
@@ -38,8 +41,9 @@ public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, Res
 
             return Result<bool>.Success(true);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to delete order {OrderId}", command.Id);
             await _unitOfWork.RollbackTransactionAsync(cancellationToken);
             throw;
         }

@@ -1,5 +1,6 @@
 using OrderManagement.Blazor.Resources;
 using StrawberryShake;
+using Microsoft.Extensions.Logging;
 
 namespace OrderManagement.Blazor.Helpers;
 
@@ -57,9 +58,16 @@ public static class ErrorMessageHelper
         };
     }
 
-    public static string HandleException(Exception exception, string context = "")
+    public static string HandleException(Exception exception, string context = "", ILogger? logger = null)
     {
-        Console.WriteLine($"[ERROR] {context}: {exception.GetType().Name} - {exception.Message}");
+        if (logger != null)
+        {
+            logger.LogError(exception, "{Context}: {Message}", context, exception.Message);
+        }
+        else
+        {
+             Console.WriteLine($"[ERROR] {context}: {exception.GetType().Name} - {exception.Message}");
+        }
         return GetErrorMessage(exception);
     }
 }

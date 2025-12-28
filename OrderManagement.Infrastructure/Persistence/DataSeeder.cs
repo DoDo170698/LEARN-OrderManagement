@@ -1,6 +1,8 @@
 using OrderManagement.Domain.Entities;
 using OrderManagement.Domain.Enums;
 
+using Microsoft.Extensions.Logging;
+
 namespace OrderManagement.Infrastructure.Persistence;
 
 /// <summary>
@@ -39,16 +41,16 @@ public static class DataSeeder
         "Docking Station", "Portable Monitor 15.6\"", "Graphics Tablet", "Drawing Pen Display"
     };
 
-    public static async Task SeedDataAsync(ApplicationDbContext context)
+    public static async Task SeedDataAsync(ApplicationDbContext context, ILogger logger)
     {
         // Check if data already exists
         if (context.Orders.Any())
         {
-            Console.WriteLine("Database already seeded. Skipping...");
+            logger.LogInformation("Database already seeded. Skipping...");
             return;
         }
 
-        Console.WriteLine("Seeding database with mock data...");
+        logger.LogInformation("Seeding database with mock data...");
 
         var orders = new List<Order>();
         var startDate = DateTime.UtcNow.AddMonths(-6);
@@ -113,10 +115,10 @@ public static class DataSeeder
         await context.Orders.AddRangeAsync(orders);
         await context.SaveChangesAsync();
 
-        Console.WriteLine($"✓ Seeded {orders.Count} orders with {orders.Sum(o => o.Items.Count)} items");
-        Console.WriteLine($"  - Pending: {orders.Count(o => o.Status == OrderStatus.Pending)}");
-        Console.WriteLine($"  - Processing: {orders.Count(o => o.Status == OrderStatus.Processing)}");
-        Console.WriteLine($"  - Completed: {orders.Count(o => o.Status == OrderStatus.Completed)}");
-        Console.WriteLine($"  - Cancelled: {orders.Count(o => o.Status == OrderStatus.Cancelled)}");
+        logger.LogInformation("✓ Seeded {Count} orders with {ItemCount} items", orders.Count, orders.Sum(o => o.Items.Count));
+        logger.LogInformation("  - Pending: {Count}", orders.Count(o => o.Status == OrderStatus.Pending));
+        logger.LogInformation("  - Processing: {Count}", orders.Count(o => o.Status == OrderStatus.Processing));
+        logger.LogInformation("  - Completed: {Count}", orders.Count(o => o.Status == OrderStatus.Completed));
+        logger.LogInformation("  - Cancelled: {Count}", orders.Count(o => o.Status == OrderStatus.Cancelled));
     }
 }

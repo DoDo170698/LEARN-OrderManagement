@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OrderManagement.Application.Common.Extensions;
 using OrderManagement.Application.DTOs;
 using OrderManagement.Domain.Common;
@@ -22,15 +23,18 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IValidator<CreateOrderCommand> _validator;
+    private readonly ILogger<CreateOrderCommandHandler> _logger;
 
     public CreateOrderCommandHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IValidator<CreateOrderCommand> validator)
+        IValidator<CreateOrderCommand> validator,
+        ILogger<CreateOrderCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _validator = validator;
+        _logger = logger;
     }
 
     public async Task<Result<OrderDto>> Handle(CreateOrderCommand command, CancellationToken cancellationToken = default)
@@ -80,8 +84,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 
                 return Result<OrderDto>.Success(_mapper.Map<OrderDto>(order));
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to create order for customer {CustomerEmail}", command.CustomerEmail);
             await _unitOfWork.RollbackTransactionAsync(cancellationToken);
             throw;
         }

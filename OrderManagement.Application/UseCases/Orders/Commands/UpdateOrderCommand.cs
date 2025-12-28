@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OrderManagement.Application.Common.Extensions;
 using OrderManagement.Application.DTOs;
 using OrderManagement.Domain.Common;
@@ -24,15 +25,18 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IValidator<UpdateOrderCommand> _validator;
+    private readonly ILogger<UpdateOrderCommandHandler> _logger;
 
     public UpdateOrderCommandHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IValidator<UpdateOrderCommand> validator)
+        IValidator<UpdateOrderCommand> validator,
+        ILogger<UpdateOrderCommandHandler> logger)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _validator = validator;
+        _logger = logger;
     }
 
     public async Task<Result<OrderDto>> Handle(UpdateOrderCommand command, CancellationToken cancellationToken = default)
@@ -113,8 +117,9 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
 
             return Result<OrderDto>.Success(_mapper.Map<OrderDto>(order));
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to update order {OrderId}", command.Id);
             await _unitOfWork.RollbackTransactionAsync(cancellationToken);
             throw;
         }
