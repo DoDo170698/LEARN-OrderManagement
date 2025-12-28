@@ -2,9 +2,6 @@ using OrderManagement.Blazor.GraphQL;
 
 namespace OrderManagement.Blazor.ViewModels;
 
-/// <summary>
-/// View model for Order display in UI
-/// </summary>
 public class OrderViewModel
 {
     public Guid Id { get; set; }

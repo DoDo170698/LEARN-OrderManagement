@@ -5,9 +5,6 @@ using OrderManagement.Blazor.Resources.Pages.Orders;
 
 namespace OrderManagement.Blazor.Pages.Orders;
 
-/// <summary>
-/// Code-behind for CreateOrder page
-/// </summary>
 public partial class CreateOrder
 {
     [Inject] private IOrderManagementClient GraphQLClient { get; set; } = default!;

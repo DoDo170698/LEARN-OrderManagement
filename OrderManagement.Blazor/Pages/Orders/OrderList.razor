@@ -99,7 +99,11 @@
                                         <i class="bi bi-hash me-2"></i>@OrderListResources.OrderNumber
                                         @if (sortField == "ORDER_NUMBER")
                                         {
-                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
+                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1 text-primary"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
                                         }
                                     </div>
                                 </th>
@@ -108,7 +112,11 @@
                                         <i class="bi bi-person me-2"></i>@OrderListResources.Customer
                                         @if (sortField == "CUSTOMER_NAME")
                                         {
-                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
+                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1 text-primary"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
                                         }
                                     </div>
                                 </th>
@@ -117,17 +125,17 @@
                                         <i class="bi bi-envelope me-2"></i>@OrderListResources.Email
                                         @if (sortField == "CUSTOMER_EMAIL")
                                         {
-                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
+                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1 text-primary"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
                                         }
                                     </div>
                                 </th>
-                                <th class="border-0" style="cursor: pointer;" @onclick='() => SortByAsync("TOTAL_AMOUNT")'>
+                                <th class="border-0">
                                     <div class="d-flex align-items-center">
                                         <i class="bi bi-currency-dollar me-2"></i>@OrderListResources.Total
-                                        @if (sortField == "TOTAL_AMOUNT")
-                                        {
-                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
-                                        }
                                     </div>
                                 </th>
                                 <th class="border-0">
@@ -140,7 +148,11 @@
                                         <i class="bi bi-flag me-2"></i>@OrderListResources.Status
                                         @if (sortField == "STATUS")
                                         {
-                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
+                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1 text-primary"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
                                         }
                                     </div>
                                 </th>
@@ -149,7 +161,11 @@
                                         <i class="bi bi-calendar me-2"></i>@OrderListResources.Created
                                         @if (sortField == "CREATED_AT")
                                         {
-                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1"></i>
+                                            <i class="bi bi-arrow-@(sortDescending ? "down" : "up") ms-1 text-primary"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-arrow-down-up ms-1 text-muted small"></i>
                                         }
                                     </div>
                                 </th>

@@ -7,9 +7,6 @@ using OrderManagement.Blazor.Resources.Pages.Orders;
 
 namespace OrderManagement.Blazor.Pages.Orders;
 
-/// <summary>
-/// Code-behind for OrderList page
-/// </summary>
 public partial class OrderList : IDisposable
 {
     [Inject] private IOrderManagementClient GraphQLClient { get; set; } = default!;
@@ -267,16 +264,10 @@ public partial class OrderList : IDisposable
                 {
                     if (result.Data?.OnOrderCreated != null)
                     {
-                        InvokeAsync(() =>
+                        InvokeAsync(async () =>
                         {
-                            var newOrder = Mapper.Map<OrderViewModel>(result.Data.OnOrderCreated);
-
-                            // Add new order to the beginning of the list if not already present
-                            if (!orders.Any(o => o.Id == newOrder.Id))
-                            {
-                                orders.Insert(0, newOrder);
-                                StateHasChanged();
-                            }
+                            await LoadOrdersAsync();
+                            StateHasChanged();
                         });
                     }
                 });
@@ -309,19 +300,12 @@ public partial class OrderList : IDisposable
                 .Watch()
                 .Subscribe(result =>
                 {
-                    if (result.Data?.OnOrderDeleted != null)
+                    if (result.Data?.OnOrderDeleted != Guid.Empty)
                     {
-                        InvokeAsync(() =>
+                        InvokeAsync(async () =>
                         {
-                            var deletedOrderId = result.Data.OnOrderDeleted;
-
-                            // Remove order from list
-                            var orderToRemove = orders.FirstOrDefault(o => o.Id == deletedOrderId);
-                            if (orderToRemove != null)
-                            {
-                                orders.Remove(orderToRemove);
-                                StateHasChanged();
-                            }
+                            await LoadOrdersAsync();
+                            StateHasChanged();
                         });
                     }
                 });
@@ -365,16 +349,10 @@ public partial class OrderList : IDisposable
 
             if (result.Data?.DeleteOrder == true)
             {
-                // Remove order from list
-                var orderToRemove = orders.FirstOrDefault(o => o.Id == deleteOrderId);
-                if (orderToRemove != null)
-                {
-                    orders.Remove(orderToRemove);
-                }
-
                 showDeleteConfirmation = false;
                 CancelDelete();
-                StateHasChanged();
+
+                await LoadOrdersAsync();
             }
             else if (result.Errors?.Count > 0)
             {

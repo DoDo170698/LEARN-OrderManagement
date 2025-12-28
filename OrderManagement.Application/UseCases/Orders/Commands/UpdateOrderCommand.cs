@@ -10,9 +10,6 @@ using OrderManagement.Domain.Interfaces;
 
 namespace OrderManagement.Application.UseCases.Orders.Commands;
 
-/// <summary>
-/// Command to update an existing order
-/// </summary>
 public class UpdateOrderCommand : IRequest<Result<OrderDto>>
 {
     public Guid Id { get; set; }
@@ -22,9 +19,6 @@ public class UpdateOrderCommand : IRequest<Result<OrderDto>>
     public List<CreateOrderItemDto>? Items { get; set; }
 }
 
-/// <summary>
-/// Handler for updating an existing order
-/// </summary>
 public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Result<OrderDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -61,7 +55,6 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
                 return ResultExtensions.NotFound<OrderDto>("Order", command.Id);
             }
 
-            // Update basic properties (always update if provided)
             order.CustomerName = command.CustomerName ?? order.CustomerName;
             order.CustomerEmail = command.CustomerEmail ?? order.CustomerEmail;
 
@@ -70,20 +63,17 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
                 order.Status = command.Status.Value;
             }
 
-            // Update items if provided
             if (command.Items != null && command.Items.Any())
             {
                 var existingItems = order.Items.ToList();
                 var newItemsCount = command.Items.Count;
 
-                // Update or add items
                 for (int i = 0; i < newItemsCount; i++)
                 {
                     var itemDto = command.Items[i];
 
                     if (i < existingItems.Count)
                     {
-                        // Update existing item
                         var existingItem = existingItems[i];
                         existingItem.ProductName = itemDto.ProductName;
                         existingItem.Quantity = itemDto.Quantity;
@@ -92,7 +82,6 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
                     }
                     else
                     {
-                        // Add new item
                         var newItem = new OrderItem
                         {
                             Id = Guid.NewGuid(),
@@ -107,7 +96,6 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
                     }
                 }
 
-                // Remove excess items if new list is shorter
                 if (existingItems.Count > newItemsCount)
                 {
                     for (int i = existingItems.Count - 1; i >= newItemsCount; i--)
@@ -115,9 +103,6 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
                         order.Items.Remove(existingItems[i]);
                     }
                 }
-
-                // Recalculate total amount
-                order.TotalAmount = order.Items.Sum(item => item.Quantity * item.UnitPrice);
             }
 
             order.UpdatedAt = DateTimeOffset.UtcNow;
@@ -126,7 +111,6 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
-            // Reload order with items
             var updatedOrder = await _unitOfWork.Orders.GetOrderWithItemsAsync(order.Id, cancellationToken);
             var orderDto = _mapper.Map<OrderDto>(updatedOrder);
 

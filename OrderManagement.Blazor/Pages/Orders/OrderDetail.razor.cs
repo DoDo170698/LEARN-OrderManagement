@@ -5,9 +5,6 @@ using OrderManagement.Blazor.Resources.Pages.Orders;
 
 namespace OrderManagement.Blazor.Pages.Orders;
 
-/// <summary>
-/// Code-behind for OrderDetail page
-/// </summary>
 public partial class OrderDetail
 {
     [Inject] private IOrderManagementClient GraphQLClient { get; set; } = default!;

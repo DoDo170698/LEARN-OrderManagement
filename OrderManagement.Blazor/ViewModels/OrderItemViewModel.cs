@@ -1,8 +1,5 @@
 namespace OrderManagement.Blazor.ViewModels;
 
-/// <summary>
-/// View model for OrderItem display in UI
-/// </summary>
 public class OrderItemViewModel
 {
     public Guid Id { get; set; }

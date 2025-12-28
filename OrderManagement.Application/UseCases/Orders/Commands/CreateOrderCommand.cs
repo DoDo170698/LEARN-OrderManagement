@@ -10,9 +10,6 @@ using OrderManagement.Domain.Interfaces;
 
 namespace OrderManagement.Application.UseCases.Orders.Commands;
 
-/// <summary>
-/// Command to create a new order
-/// </summary>
 public class CreateOrderCommand : IRequest<Result<OrderDto>>
 {
     public string CustomerName { get; set; } = string.Empty;
@@ -20,9 +17,6 @@ public class CreateOrderCommand : IRequest<Result<OrderDto>>
     public List<CreateOrderItemDto> Items { get; set; } = new();
 }
 
-/// <summary>
-/// Handler for creating a new order
-/// </summary>
 public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Result<OrderDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
@@ -52,13 +46,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         {
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            // Generate order number
             var orderNumber = await GenerateOrderNumberAsync(cancellationToken);
 
-            // Calculate total amount
-            var totalAmount = command.Items.Sum(item => item.Quantity * item.UnitPrice);
-
-            // Create order entity
             var order = new Order
             {
                 Id = Guid.NewGuid(),
@@ -66,7 +55,6 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
                 CustomerName = command.CustomerName,
                 CustomerEmail = command.CustomerEmail,
                 Status = OrderStatus.Pending,
-                TotalAmount = totalAmount,
                 CreatedAt = DateTimeOffset.UtcNow,
                 UpdatedAt = DateTimeOffset.UtcNow
             };

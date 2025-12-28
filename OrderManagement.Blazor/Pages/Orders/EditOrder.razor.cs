@@ -5,9 +5,6 @@ using OrderManagement.Blazor.Resources.Pages.Orders;
 
 namespace OrderManagement.Blazor.Pages.Orders;
 
-/// <summary>
-/// Code-behind for EditOrder page
-/// </summary>
 public partial class EditOrder
 {
     [Inject] private IOrderManagementClient GraphQLClient { get; set; } = default!;
