@@ -27,10 +27,21 @@ public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, Res
             return ResultExtensions.NotFound<bool>("Order", command.Id);
         }
 
-        // Delete order (cascade delete will remove items)
-        await _unitOfWork.Orders.DeleteAsync(order.Id, cancellationToken);
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        return Result<bool>.Success(true);
+            // Delete order (cascade delete will remove items)
+            await _unitOfWork.Orders.DeleteAsync(order.Id, cancellationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+            await _unitOfWork.CommitTransactionAsync(cancellationToken);
+
+            return Result<bool>.Success(true);
+        }
+        catch
+        {
+            await _unitOfWork.RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
     }
 }

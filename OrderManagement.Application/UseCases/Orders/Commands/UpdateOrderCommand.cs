@@ -44,16 +44,16 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
             return validationResult.ToFailureResult<OrderDto>();
         }
 
-        try
-        {
-            await _unitOfWork.BeginTransactionAsync(cancellationToken);
-
             var order = await _unitOfWork.Orders.GetOrderWithItemsAsync(command.Id, cancellationToken);
 
             if (order == null)
             {
                 return ResultExtensions.NotFound<OrderDto>("Order", command.Id);
             }
+
+            try
+            {
+                await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
             order.CustomerName = command.CustomerName ?? order.CustomerName;
             order.CustomerEmail = command.CustomerEmail ?? order.CustomerEmail;
