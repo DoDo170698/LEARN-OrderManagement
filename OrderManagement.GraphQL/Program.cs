@@ -31,8 +31,8 @@ builder.Services.AddCors(options =>
                 "http://localhost:5118",  // GraphQL HTTP
                 "https://localhost:7178"  // GraphQL HTTPS
               )
-              .AllowAnyHeader()
-              .AllowAnyMethod()
+              .WithHeaders("Authorization", "Content-Type", "GraphQL-Preflight")
+              .WithMethods("POST", "OPTIONS")
               .AllowCredentials();
     });
 });
