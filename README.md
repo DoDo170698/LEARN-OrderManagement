@@ -9,7 +9,7 @@ A complete Order Management System built with GraphQL, Blazor Server, and Clean 
 - **HotChocolate 14.1.0** - GraphQL server implementation
 - **Clean Architecture** - Separation of concerns with Domain, Application, Infrastructure layers
 - **CQRS + MediatR** - Command Query Responsibility Segregation pattern
-- **Entity Framework Core InMemory** - In-memory database for development
+- **SQLite** - Lightweight persistent database
 - **JWT Bearer Authentication** - Secure API with static token
 - **GraphQL Subscriptions** - Real-time updates via WebSocket
 
@@ -28,7 +28,8 @@ SourceCode/
 ├── OrderManagement.Application/    # Business logic, CQRS handlers, DTOs
 ├── OrderManagement.Infrastructure/ # EF Core, repositories, data access
 ├── OrderManagement.GraphQL/        # GraphQL schema, types, mutations, subscriptions
-└── OrderManagement.Blazor/         # Blazor Server UI with StrawberryShake client
+├── OrderManagement.Blazor/         # Blazor Server UI with StrawberryShake client
+└── OrderManagement.Tests/          # Unit and Integration tests
 ```
 
 ## Features
@@ -76,7 +77,7 @@ GraphQL Server Started
 ================================
 GraphQL Endpoint: http://localhost:5118/graphql
 
-Database: In-Memory
+Database: SQLite
 Architecture: Clean Architecture + CQRS + MediatR
 Auth: JWT Bearer Token (Static)
 
@@ -108,6 +109,111 @@ Navigate to **http://localhost:5101** in your browser.
 
 The application automatically connects to the GraphQL server using the JWT token configured in `appsettings.json`.
 
+## Configuration
+
+### GraphQL Server (`OrderManagement.GraphQL/appsettings.json`)
+
+```json
+{
+  "Jwt": {
+    "SecretKey": "ThisIsASecretKeyForJWTTokenGenerationAndValidation123!",
+    "Issuer": "OrderManagement.GraphQL",
+    "Audience": "OrderManagement.Client",
+    "ExpiryInYears": 10
+  }
+}
+```
+
+### Blazor Client (`OrderManagement.Blazor/appsettings.json`)
+
+```json
+{
+  "GraphQL": {
+    "Endpoint": "http://localhost:5118/graphql",
+    "WebSocketEndpoint": "ws://localhost:5118/graphql",
+    "JwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+}
+```
+
+## Architecture Details
+
+### Clean Architecture Layers
+
+**Domain Layer** (`OrderManagement.Domain`)
+- Pure business entities: Order, OrderItem
+- Domain interfaces: IOrderRepository
+- No external dependencies
+
+**Application Layer** (`OrderManagement.Application`)
+- CQRS Commands: CreateOrderCommand, UpdateOrderCommand, DeleteOrderCommand
+- CQRS Queries: GetOrdersQuery, GetOrderByIdQuery
+- Command/Query Handlers using MediatR
+- DTOs: OrderDto, OrderItemDto, CreateOrderDto, UpdateOrderDto
+- AutoMapper profiles for entity-to-DTO mapping
+
+**Infrastructure Layer** (`OrderManagement.Infrastructure`)
+- Entity Framework Core configuration
+- Repository implementations
+- ApplicationDbContext with SQLite database
+- Database seeding with sample data
+
+**GraphQL Layer** (`OrderManagement.GraphQL`)
+- HotChocolate schema definition
+- GraphQL types: OrderType, OrderItemType
+- Input types: CreateOrderInput, UpdateOrderInput
+- Mutations: createOrder, updateOrder, deleteOrder
+- Queries: orders, orderById
+- Subscriptions: onOrderCreated, onOrderUpdated
+- JWT authentication configuration
+
+**Presentation Layer** (`OrderManagement.Blazor`)
+- Blazor Server pages: OrderList, OrderDetail, CreateOrder, EditOrder
+- StrawberryShake GraphQL client integration
+- Real-time subscription handling
+- Bootstrap UI components
+
+### CQRS Pattern
+
+**Commands** (write operations):
+- `CreateOrderCommand` → `CreateOrderCommandHandler` → Repository → Database
+- `UpdateOrderCommand` → `UpdateOrderCommandHandler` → Repository → Database
+- `DeleteOrderCommand` → `DeleteOrderCommandHandler` → Repository → Database
+
+**Queries** (read operations):
+- `GetOrdersQuery` → `GetOrdersQueryHandler` → Repository → DTOs
+- `GetOrderByIdQuery` → `GetOrderByIdQueryHandler` → Repository → DTOs
+
+**Subscriptions** (real-time events):
+- Order mutations trigger `ITopicEventSender` to publish events
+- Subscribers receive events via WebSocket
+- Events: `OnOrderCreated`, `OnOrderUpdated`
+
+### StrawberryShake Code Generation
+
+The Blazor project uses StrawberryShake to generate strongly-typed C# clients from GraphQL operations:
+
+**1. GraphQL Operations** (`GraphQL/OrderOperations.graphql`)
+- Defines all queries, mutations, and subscriptions
+
+**2. Build-time Code Generation**
+- StrawberryShake MSBuild task downloads schema from server
+- Generates C# interfaces and classes
+- Creates `IOrderManagementClient` service
+
+**3. Dependency Injection**
+- `AddOrderManagementClient()` registers GraphQL client
+- Configures HTTP client with JWT authentication
+- Configures WebSocket client for subscriptions
+
+**4. Usage in Pages**
+```csharp
+@inject IOrderManagementClient GraphQLClient
+
+var result = await GraphQLClient.GetOrders.ExecuteAsync();
+var orders = result.Data.Orders;
+```
+
 ## Testing GraphQL Operations
 
 ### Using Banana Cake Pop (Built-in GraphQL IDE)
@@ -131,20 +237,23 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb2NrLWFkb
 ```graphql
 query GetOrders {
   orders {
-    id
-    orderNumber
-    customerName
-    customerEmail
-    status
-    totalAmount
-    createdAt
-    items {
+    nodes {
       id
-      productName
-      quantity
-      unitPrice
-      subtotal
+      orderNumber
+      customerName
+      customerEmail
+      status
+      totalAmount
+      createdAt
+      items {
+        id
+        productName
+        quantity
+        unitPrice
+        subtotal
+      }
     }
+    totalCount
   }
 }
 ```
@@ -176,14 +285,16 @@ query GetOrderById($id: UUID!) {
 }
 ```
 
-**Get Orders by Status:**
+**Get Orders by Status (Filtering):**
 ```graphql
 query GetOrdersByStatus($status: OrderStatus!) {
-  ordersByStatus(status: $status) {
-    orderNumber
-    customerName
-    status
-    totalAmount
+  orders(where: { status: { eq: $status } }) {
+    nodes {
+        orderNumber
+        customerName
+        status
+        totalAmount
+    }
   }
 }
 ```
@@ -370,85 +481,6 @@ After subscribing, update an order via the Blazor UI. The subscription will rece
 - **Auto-reconnect:** StrawberryShake handles reconnection automatically
 - **Status Indicator:** Green "Live Updates Active" badge when connected
 
-## Architecture Details
-
-### Clean Architecture Layers
-
-**Domain Layer** (`OrderManagement.Domain`)
-- Pure business entities: Order, OrderItem
-- Domain interfaces: IOrderRepository
-- No external dependencies
-
-**Application Layer** (`OrderManagement.Application`)
-- CQRS Commands: CreateOrderCommand, UpdateOrderCommand, DeleteOrderCommand
-- CQRS Queries: GetOrdersQuery, GetOrderByIdQuery, GetOrdersByStatusQuery
-- Command/Query Handlers using MediatR
-- DTOs: OrderDto, OrderItemDto, CreateOrderDto, UpdateOrderDto
-- AutoMapper profiles for entity-to-DTO mapping
-
-**Infrastructure Layer** (`OrderManagement.Infrastructure`)
-- Entity Framework Core configuration
-- Repository implementations
-- OrderDbContext with InMemory database
-- Database seeding with sample data
-
-**GraphQL Layer** (`OrderManagement.GraphQL`)
-- HotChocolate schema definition
-- GraphQL types: OrderType, OrderItemType
-- Input types: CreateOrderInput, UpdateOrderInput
-- Mutations: createOrder, updateOrder, deleteOrder
-- Queries: orders, orderById, ordersByStatus
-- Subscriptions: onOrderCreated, onOrderUpdated
-- JWT authentication configuration
-
-**Presentation Layer** (`OrderManagement.Blazor`)
-- Blazor Server pages: OrderList, OrderDetail, CreateOrder, EditOrder
-- StrawberryShake GraphQL client integration
-- Real-time subscription handling
-- Bootstrap UI components
-
-### CQRS Pattern
-
-**Commands** (write operations):
-- `CreateOrderCommand` → `CreateOrderCommandHandler` → Repository → Database
-- `UpdateOrderCommand` → `UpdateOrderCommandHandler` → Repository → Database
-- `DeleteOrderCommand` → `DeleteOrderCommandHandler` → Repository → Database
-
-**Queries** (read operations):
-- `GetOrdersQuery` → `GetOrdersQueryHandler` → Repository → DTOs
-- `GetOrderByIdQuery` → `GetOrderByIdQueryHandler` → Repository → DTOs
-- `GetOrdersByStatusQuery` → `GetOrdersByStatusQueryHandler` → Repository → DTOs
-
-**Subscriptions** (real-time events):
-- Order mutations trigger `ITopicEventSender` to publish events
-- Subscribers receive events via WebSocket
-- Events: `OnOrderCreated`, `OnOrderUpdated`
-
-### StrawberryShake Code Generation
-
-The Blazor project uses StrawberryShake to generate strongly-typed C# clients from GraphQL operations:
-
-**1. GraphQL Operations** (`GraphQL/OrderOperations.graphql`)
-- Defines all queries, mutations, and subscriptions
-
-**2. Build-time Code Generation**
-- StrawberryShake MSBuild task downloads schema from server
-- Generates C# interfaces and classes
-- Creates `IOrderManagementClient` service
-
-**3. Dependency Injection**
-- `AddOrderManagementClient()` registers GraphQL client
-- Configures HTTP client with JWT authentication
-- Configures WebSocket client for subscriptions
-
-**4. Usage in Pages**
-```csharp
-@inject IOrderManagementClient GraphQLClient
-
-var result = await GraphQLClient.GetOrders.ExecuteAsync();
-var orders = result.Data.Orders;
-```
-
 ## Sample Data
 
 The GraphQL server includes 8 pre-seeded orders with various statuses:
@@ -461,33 +493,6 @@ The GraphQL server includes 8 pre-seeded orders with various statuses:
 - **ORD-006** - Webcam (Processing)
 - **ORD-007** - Headphones (Completed)
 - **ORD-008** - Phone Charger (Pending)
-
-## Configuration
-
-### GraphQL Server (`OrderManagement.GraphQL/appsettings.json`)
-
-```json
-{
-  "Jwt": {
-    "SecretKey": "ThisIsASecretKeyForJWTTokenGenerationAndValidation123!",
-    "Issuer": "OrderManagement.GraphQL",
-    "Audience": "OrderManagement.Client",
-    "ExpiryInYears": 10
-  }
-}
-```
-
-### Blazor Client (`OrderManagement.Blazor/appsettings.json`)
-
-```json
-{
-  "GraphQL": {
-    "Endpoint": "http://localhost:5118/graphql",
-    "WebSocketEndpoint": "ws://localhost:5118/graphql",
-    "JwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  }
-}
-```
 
 ## Security Considerations
 
@@ -577,23 +582,6 @@ dotnet publish -c Release -o ./publish
 6. **Set Environment Variables** for sensitive configuration
 7. **Use Connection Pooling** for WebSocket subscriptions at scale
 
-## AI Usage Disclosure
-
-This project was developed with the assistance of Claude (Anthropic) AI assistant. The AI helped with:
-
-- Architectural design and Clean Architecture implementation
-- CQRS + MediatR pattern setup
-- HotChocolate GraphQL schema design
-- GraphQL Subscriptions implementation
-- StrawberryShake client integration
-- WebSocket authentication setup
-- Blazor Server page development
-- Real-time UI updates and state management
-- Code generation and boilerplate reduction
-- Documentation and README creation
-
-All code was reviewed, tested, and validated for correctness and best practices.
-
 ## License
 
 This project is for educational and demonstration purposes.
@@ -601,9 +589,3 @@ This project is for educational and demonstration purposes.
 ## Contact
 
 For questions or issues, please create an issue in the project repository.
-
----
-
-**Built with .NET 10.0, HotChocolate 14.1.0, Blazor Server, and StrawberryShake 14.1.0**
-
-**Generated with Claude Code** - https://claude.com/claude-code
