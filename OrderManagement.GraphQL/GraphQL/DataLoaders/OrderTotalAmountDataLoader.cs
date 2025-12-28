@@ -12,7 +12,7 @@ public class OrderTotalAmountDataLoader : BatchDataLoader<Guid, decimal>
     public OrderTotalAmountDataLoader(
         ApplicationDbContext dbContext,
         IBatchScheduler batchScheduler,
-        DataLoaderOptions? options = null)
+        DataLoaderOptions options)
         : base(batchScheduler, options)
     {
         _dbContext = dbContext;
