@@ -111,10 +111,7 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
             await _unitOfWork.SaveChangesAsync(cancellationToken);
             await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
-            var updatedOrder = await _unitOfWork.Orders.GetOrderWithItemsAsync(order.Id, cancellationToken);
-            var orderDto = _mapper.Map<OrderDto>(updatedOrder);
-
-            return Result<OrderDto>.Success(orderDto);
+            return Result<OrderDto>.Success(_mapper.Map<OrderDto>(order));
         }
         catch
         {

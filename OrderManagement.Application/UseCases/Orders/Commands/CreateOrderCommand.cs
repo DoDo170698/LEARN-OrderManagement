@@ -48,44 +48,37 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 
             var orderNumber = $"ORD-{Guid.NewGuid():N}";
 
-            var order = new Order
-            {
-                Id = Guid.NewGuid(),
-                OrderNumber = orderNumber,
-                CustomerName = command.CustomerName,
-                CustomerEmail = command.CustomerEmail,
-                Status = OrderStatus.Pending,
-                CreatedAt = DateTimeOffset.UtcNow,
-                UpdatedAt = DateTimeOffset.UtcNow
-            };
-
-            await _unitOfWork.Orders.AddAsync(order, cancellationToken);
-
-            // Create order items
-            foreach (var itemDto in command.Items)
-            {
-                var orderItem = new OrderItem
+                var order = new Order
                 {
                     Id = Guid.NewGuid(),
-                    OrderId = order.Id,
-                    ProductName = itemDto.ProductName,
-                    Quantity = itemDto.Quantity,
-                    UnitPrice = itemDto.UnitPrice,
-                    Subtotal = itemDto.Quantity * itemDto.UnitPrice,
-                    CreatedAt = DateTimeOffset.UtcNow
+                    OrderNumber = orderNumber,
+                    CustomerName = command.CustomerName,
+                    CustomerEmail = command.CustomerEmail,
+                    Status = OrderStatus.Pending,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTimeOffset.UtcNow
                 };
 
-                await _unitOfWork.OrderItems.AddAsync(orderItem, cancellationToken);
-            }
+                foreach (var itemDto in command.Items)
+                {
+                    var orderItem = new OrderItem
+                    {
+                        Id = Guid.NewGuid(),
+                        OrderId = order.Id,
+                        ProductName = itemDto.ProductName,
+                        Quantity = itemDto.Quantity,
+                        UnitPrice = itemDto.UnitPrice,
+                        Subtotal = itemDto.Quantity * itemDto.UnitPrice,
+                        CreatedAt = DateTimeOffset.UtcNow
+                    };
+                    order.Items.Add(orderItem);
+                }
 
-            await _unitOfWork.SaveChangesAsync(cancellationToken);
-            await _unitOfWork.CommitTransactionAsync(cancellationToken);
+                await _unitOfWork.Orders.AddAsync(order, cancellationToken);
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+                await _unitOfWork.CommitTransactionAsync(cancellationToken);
 
-            // Reload order with items
-            var createdOrder = await _unitOfWork.Orders.GetOrderWithItemsAsync(order.Id, cancellationToken);
-            var orderDto = _mapper.Map<OrderDto>(createdOrder);
-
-            return Result<OrderDto>.Success(orderDto);
+                return Result<OrderDto>.Success(_mapper.Map<OrderDto>(order));
         }
         catch
         {
