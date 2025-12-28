@@ -41,15 +41,12 @@ public partial class EditOrder
 
             if (result.Data?.OrderById != null)
             {
-                // Success - order returned directly (GraphQL standard)
                 order = result.Data.OrderById;
 
-                // Populate form with current values
                 orderInput.CustomerName = order.CustomerName;
                 orderInput.CustomerEmail = order.CustomerEmail;
                 selectedStatus = order.Status.ToString();
 
-                // Load existing items
                 orderInput.Items = order.Items.Select(i => new OrderItemInput
                 {
                     ProductName = i.ProductName,
@@ -57,7 +54,6 @@ public partial class EditOrder
                     UnitPrice = i.UnitPrice
                 }).ToList();
 
-                // Ensure at least one item
                 if (!orderInput.Items.Any())
                 {
                     orderInput.Items.Add(new OrderItemInput());
@@ -65,7 +61,6 @@ public partial class EditOrder
             }
             else if (result.Errors?.Count > 0)
             {
-                // GraphQL standard - errors in top-level errors array
                 errorMessage = ErrorMessageHelper.GetErrorMessage(result);
             }
             else
@@ -119,7 +114,6 @@ public partial class EditOrder
                 return;
             }
 
-            // Validation
             if (string.IsNullOrWhiteSpace(orderInput.CustomerName))
             {
                 errorMessage = EditOrderResources.CustomerNameRequired;
@@ -150,14 +144,12 @@ public partial class EditOrder
                 return;
             }
 
-            // Parse status
             OrderStatus? parsedStatus = null;
             if (!string.IsNullOrEmpty(selectedStatus))
             {
                 parsedStatus = Enum.Parse<OrderStatus>(selectedStatus);
             }
 
-            // Map to GraphQL input
             var input = new UpdateOrderInput
             {
                 Id = Id,
@@ -176,15 +168,11 @@ public partial class EditOrder
 
             if (result.Data?.UpdateOrder != null)
             {
-                // Success - order returned directly (GraphQL standard)
                 Navigation.NavigateTo($"/orders/{Id}");
             }
             else if (result.Errors?.Count > 0)
             {
-                // GraphQL standard - errors in top-level errors array
                 errorMessage = ErrorMessageHelper.GetErrorMessage(result);
-
-                // Extract field-level errors from extensions if present
                 fieldErrors.Clear();
                 var firstError = result.Errors.First();
                 if (firstError.Extensions != null && firstError.Extensions.ContainsKey("fields"))

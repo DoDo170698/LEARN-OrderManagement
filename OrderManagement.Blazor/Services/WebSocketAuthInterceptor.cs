@@ -28,11 +28,9 @@ public class WebSocketAuthInterceptor : ISocketConnectionInterceptor
 
     public void OnConnectionOpened(ISocketClient client)
     {
-        // No action needed
     }
 
     public void OnConnectionClosed(ISocketClient client)
     {
-        // No action needed
     }
 }

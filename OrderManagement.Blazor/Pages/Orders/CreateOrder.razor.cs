@@ -82,7 +82,6 @@ public partial class CreateOrder
                 return;
             }
 
-            // Map to GraphQL input
             var input = new CreateOrderInput
             {
                 CustomerName = orderInput.CustomerName,
@@ -99,16 +98,12 @@ public partial class CreateOrder
 
             if (result.Data?.CreateOrder != null)
             {
-                // Success - order returned directly (GraphQL standard)
                 var orderId = result.Data.CreateOrder.Id;
                 Navigation.NavigateTo($"/orders/{orderId}");
             }
             else if (result.Errors?.Count > 0)
             {
-                // GraphQL standard - errors in top-level errors array
                 errorMessage = ErrorMessageHelper.GetErrorMessage(result);
-
-                // Extract field-level errors from extensions if present
                 fieldErrors.Clear();
                 var firstError = result.Errors.First();
                 if (firstError.Extensions != null && firstError.Extensions.ContainsKey("fields"))
@@ -145,7 +140,6 @@ public partial class CreateOrder
         }
     }
 
-    // Local input models for form binding
     public class OrderInput
     {
         public string CustomerName { get; set; } = string.Empty;

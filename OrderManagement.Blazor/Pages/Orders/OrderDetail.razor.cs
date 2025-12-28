@@ -38,12 +38,10 @@ public partial class OrderDetail
 
             if (result.Data?.OrderById != null)
             {
-                // Success - order returned directly (GraphQL standard)
                 order = result.Data.OrderById;
             }
             else if (result.Errors?.Count > 0)
             {
-                // GraphQL standard - errors in top-level errors array
                 errorMessage = ErrorMessageHelper.GetErrorMessage(result);
             }
             else
@@ -99,12 +97,10 @@ public partial class OrderDetail
 
             if (result.Data?.DeleteOrder == true)
             {
-                // Navigate back to orders list after successful delete
                 Navigation.NavigateTo("/orders");
             }
             else if (result.Errors?.Count > 0)
             {
-                // GraphQL standard - errors in top-level errors array
                 errorMessage = ErrorMessageHelper.GetErrorMessage(result);
                 showDeleteConfirmation = false;
             }

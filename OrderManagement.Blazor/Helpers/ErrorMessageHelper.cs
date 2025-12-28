@@ -18,10 +18,8 @@ public static class ErrorMessageHelper
             return ErrorMessages.UNKNOWN_ERROR;
         }
 
-        // Get the first error (can be enhanced to handle multiple errors)
         var error = result.Errors.First();
 
-        // Try to get the error code from extensions
         if (error.Extensions != null && error.Extensions.TryGetValue("errorCode", out var errorCodeObj))
         {
             var errorCode = errorCodeObj?.ToString();
@@ -31,7 +29,6 @@ public static class ErrorMessageHelper
             }
         }
 
-        // Fallback to error message
         return error.Message ?? ErrorMessages.UNKNOWN_ERROR;
     }
 

@@ -25,7 +25,6 @@ public partial class OrderList : IDisposable
     private IDisposable? _updateSubscription;
     private IDisposable? _deleteSubscription;
 
-    // Paging state
     private int pageSize = 10;
     private string? currentCursor = null;
     private string? startCursor = null;
@@ -36,15 +35,12 @@ public partial class OrderList : IDisposable
     private int currentPageNumber = 1;
     private int totalCount = 0;
 
-    // Filter state
     private OrderStatus? filterStatus = null;
     private string searchText = string.Empty;
 
-    // Sort state
     private string sortField = "CREATED_AT";
     private bool sortDescending = true;
 
-    // Delete state
     private bool showDeleteConfirmation = false;
     private bool isDeleting = false;
     private Guid deleteOrderId;
@@ -64,13 +60,9 @@ public partial class OrderList : IDisposable
             isLoading = true;
             errorMessage = null;
 
-            // Build filter
             var whereFilter = BuildFilter();
-
-            // Build sort
             var orderSort = BuildSort();
 
-            // Load orders with paging, filtering, and sorting
             var result = await GraphQLClient.GetOrdersList.ExecuteAsync(
                 first: pageSize,
                 after: currentCursor,

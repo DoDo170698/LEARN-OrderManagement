@@ -23,8 +23,6 @@ public class OrderRepository : Repository<Order>, IOrderRepository
 
     public IQueryable<Order> GetOrdersQueryable()
     {
-        // NO Include - optimized for list view without items
-        // NO default OrderBy - GraphQL [UseSorting] middleware will handle sorting
         return _dbSet;
     }
 

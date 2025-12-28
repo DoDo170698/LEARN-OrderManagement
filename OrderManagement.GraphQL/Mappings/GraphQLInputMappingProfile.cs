@@ -12,13 +12,8 @@ public class GraphQLInputMappingProfile : Profile
 {
     public GraphQLInputMappingProfile()
     {
-        // Map CreateOrderInput -> CreateOrderCommand
         CreateMap<CreateOrderInput, CreateOrderCommand>();
-
-        // Map CreateOrderItemInput -> CreateOrderItemDto
         CreateMap<CreateOrderItemInput, CreateOrderItemDto>();
-
-        // Map UpdateOrderInput -> UpdateOrderCommand
         CreateMap<UpdateOrderInput, UpdateOrderCommand>()
             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status));
     }

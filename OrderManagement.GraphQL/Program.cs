@@ -11,22 +11,15 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Read JWT Configuration from appsettings.json
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 var staticToken = builder.Configuration["Jwt:StaticToken"]!;
 
-// Add Infrastructure Layer (DbContext, Repositories, UnitOfWork)
 builder.Services.AddInfrastructure(builder.Configuration);
-
-// Add Application Layer (AutoMapper, FluentValidation, CQRS Handlers)
 builder.Services.AddApplication();
-
-// Add AutoMapper for GraphQL layer (Input -> Command mapping)
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-// Add CORS with restricted policy
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -43,7 +36,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add JWT Authentication
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -62,7 +54,6 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// Add GraphQL Server with HotChocolate
 builder.Services
     .AddGraphQLServer()
     .AddQueryType<OrderQueries>()
@@ -86,27 +77,17 @@ builder.Services
 
 var app = builder.Build();
 
-// Initialize database and seed data
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     await context.Database.EnsureCreatedAsync();
-
-    // Seed mock data for development/testing (centralized in DataSeeder.cs)
     await DataSeeder.SeedDataAsync(context);
 }
 
-// Configure middleware pipeline
 app.UseCors();
-
-// Use Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
-
-// Use WebSockets for GraphQL subscriptions
 app.UseWebSockets();
-
-// Map GraphQL endpoint
 app.MapGraphQL();
 
 Console.WriteLine("================================");

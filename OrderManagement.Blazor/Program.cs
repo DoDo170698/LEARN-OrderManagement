@@ -4,14 +4,11 @@ using OrderManagement.Blazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-// Add AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
 
-// Add StrawberryShake GraphQL Client with WebSocket support
 builder.Services
     .AddOrderManagementClient()
     .ConfigureHttpClient((sp, client) =>
@@ -36,7 +33,6 @@ builder.Services
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

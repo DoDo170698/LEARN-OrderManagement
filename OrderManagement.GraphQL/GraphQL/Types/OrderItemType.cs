@@ -14,7 +14,6 @@ public class OrderItemType : ObjectType<OrderItem>
             .Name("OrderItem")
             .Description("Represents an item within an order");
 
-        // Add computed field: subtotal
         descriptor
             .Field("subtotal")
             .Type<DecimalType>()
