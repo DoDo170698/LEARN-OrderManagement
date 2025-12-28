@@ -101,7 +101,7 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
                             Quantity = itemDto.Quantity,
                             UnitPrice = itemDto.UnitPrice,
                             Subtotal = itemDto.Quantity * itemDto.UnitPrice,
-                            CreatedAt = DateTime.UtcNow
+                            CreatedAt = DateTimeOffset.UtcNow
                         };
                         order.Items.Add(newItem);
                     }
@@ -120,7 +120,7 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Res
                 order.TotalAmount = order.Items.Sum(item => item.Quantity * item.UnitPrice);
             }
 
-            order.UpdatedAt = DateTime.UtcNow;
+            order.UpdatedAt = DateTimeOffset.UtcNow;
 
             await _unitOfWork.Orders.UpdateAsync(order, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);

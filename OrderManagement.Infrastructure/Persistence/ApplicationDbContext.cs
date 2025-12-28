@@ -32,4 +32,26 @@ public class ApplicationDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OrderConfiguration());
         modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
     }
+
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+        base.ConfigureConventions(configurationBuilder);
+
+        // SQLite doesn't support DateTimeOffset natively, convert to DateTime (UTC)
+        configurationBuilder.Properties<DateTimeOffset>()
+            .HaveConversion<DateTimeOffsetToDateTimeConverter>();
+    }
+
+    /// <summary>
+    /// Converter for SQLite: DateTimeOffset <-> DateTime (stores as UTC)
+    /// </summary>
+    private class DateTimeOffsetToDateTimeConverter : Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTimeOffset, DateTime>
+    {
+        public DateTimeOffsetToDateTimeConverter()
+            : base(
+                dateTimeOffset => dateTimeOffset.UtcDateTime,
+                dateTime => new DateTimeOffset(dateTime, TimeSpan.Zero))
+        {
+        }
+    }
 }

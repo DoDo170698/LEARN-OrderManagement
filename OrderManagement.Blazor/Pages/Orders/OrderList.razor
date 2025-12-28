@@ -1,6 +1,7 @@
 @page "/orders"
 @using OrderManagement.Blazor.ViewModels
 @using OrderManagement.Blazor.Resources.Pages.Orders
+@using OrderManagement.Blazor.Helpers
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>@OrderListResources.PageTitle</PageTitle>
@@ -174,7 +175,7 @@
                                         </span>
                                     </td>
                                     <td class="text-muted small">
-                                        <i class="bi bi-clock me-1"></i>@order.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                                        <i class="bi bi-clock me-1"></i>@DateTimeHelper.ToLocalDateTime(order.CreatedAt)
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm" role="group">

@@ -1,6 +1,7 @@
 @page "/orders/{id:guid}"
 @using OrderManagement.Blazor.GraphQL
 @using OrderManagement.Blazor.Resources.Pages.Orders
+@using OrderManagement.Blazor.Helpers
 @rendermode @(new InteractiveServerRenderMode(prerender: false))
 
 <PageTitle>@OrderDetailResources.PageTitle</PageTitle>
@@ -100,14 +101,14 @@
                             <label class="text-muted small mb-1">@OrderDetailResources.Created</label>
                             <div>
                                 <i class="bi bi-calendar-plus me-1"></i>
-                                @order.CreatedAt.ToString("MMM dd, yyyy 'at' HH:mm")
+                                @DateTimeHelper.ToLocalDateTime(order.CreatedAt)
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="text-muted small mb-1">@OrderDetailResources.LastUpdated</label>
                             <div>
                                 <i class="bi bi-calendar-check me-1"></i>
-                                @order.UpdatedAt.ToString("MMM dd, yyyy 'at' HH:mm")
+                                @DateTimeHelper.ToLocalDateTime(order.UpdatedAt)
                             </div>
                         </div>
                     </div>

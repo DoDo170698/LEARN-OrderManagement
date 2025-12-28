@@ -11,6 +11,6 @@ public class OrderItem
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal Subtotal { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public virtual Order Order { get; set; } = null!;
 }

@@ -67,8 +67,8 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
                 CustomerEmail = command.CustomerEmail,
                 Status = OrderStatus.Pending,
                 TotalAmount = totalAmount,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow,
+                UpdatedAt = DateTimeOffset.UtcNow
             };
 
             await _unitOfWork.Orders.AddAsync(order, cancellationToken);
@@ -84,7 +84,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
                     Quantity = itemDto.Quantity,
                     UnitPrice = itemDto.UnitPrice,
                     Subtotal = itemDto.Quantity * itemDto.UnitPrice,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTimeOffset.UtcNow
                 };
 
                 await _unitOfWork.OrderItems.AddAsync(orderItem, cancellationToken);
@@ -108,7 +108,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
 
     private async Task<string> GenerateOrderNumberAsync(CancellationToken cancellationToken)
     {
-        var year = DateTime.UtcNow.Year;
+        var year = DateTimeOffset.UtcNow.Year;
         var count = await _unitOfWork.Orders.GetOrderCountByYearAsync(year, cancellationToken);
         var nextNumber = count + 1;
         return $"ORD-{year}-{nextNumber:D3}";
