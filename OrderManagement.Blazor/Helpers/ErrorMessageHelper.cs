@@ -59,7 +59,7 @@ public static class ErrorMessageHelper
 
     public static string HandleException(Exception exception, string context = "")
     {
-        Console.WriteLine($"[ERROR] {context}: {exception}");
+        Console.WriteLine($"[ERROR] {context}: {exception.GetType().Name} - {exception.Message}");
         return GetErrorMessage(exception);
     }
 }
