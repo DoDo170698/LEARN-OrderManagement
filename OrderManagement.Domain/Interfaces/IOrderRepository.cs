@@ -8,6 +8,4 @@ public interface IOrderRepository : IRepository<Order>
     Task<Order?> GetOrderWithItemsAsync(Guid id, CancellationToken cancellationToken = default);
     IQueryable<Order> GetOrdersQueryable();
     Task<int> GetOrderCountByYearAsync(int year, CancellationToken cancellationToken = default);
-    Task<int> GetItemCountAsync(Guid orderId, CancellationToken cancellationToken = default);
-    Task<decimal> GetTotalAmountAsync(Guid orderId, CancellationToken cancellationToken = default);
 }

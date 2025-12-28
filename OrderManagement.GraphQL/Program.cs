@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OrderManagement.Application;
+using OrderManagement.GraphQL.GraphQL.DataLoaders;
 using OrderManagement.GraphQL.GraphQL.Filters;
 using OrderManagement.GraphQL.GraphQL.Mutations;
 using OrderManagement.GraphQL.GraphQL.Queries;
@@ -58,6 +59,8 @@ builder.Services
     .AddGraphQLServer()
     .AddQueryType<OrderQueries>()
     .AddMutationType()
+    .AddDataLoader<OrderTotalAmountDataLoader>()
+    .AddDataLoader<OrderItemCountDataLoader>()
     .AddTypeExtension<OrderMutations>()
     .AddSubscriptionType<OrderSubscriptions>()
     .AddType<OrderType>()

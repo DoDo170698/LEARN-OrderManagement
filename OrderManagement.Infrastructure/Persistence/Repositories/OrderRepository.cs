@@ -32,20 +32,4 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .Where(o => o.CreatedAt >= startDate && o.CreatedAt < endDate)
             .CountAsync(cancellationToken);
     }
-
-    public async Task<int> GetItemCountAsync(Guid orderId, CancellationToken cancellationToken = default)
-    {
-        return await _context.Set<OrderItem>()
-            .Where(item => item.OrderId == orderId)
-            .CountAsync(cancellationToken);
-    }
-
-    public async Task<decimal> GetTotalAmountAsync(Guid orderId, CancellationToken cancellationToken = default)
-    {
-        var items = await _context.Set<OrderItem>()
-            .Where(item => item.OrderId == orderId)
-            .ToListAsync(cancellationToken);
-
-        return items.Sum(item => item.Quantity * item.UnitPrice);
-    }
 }
