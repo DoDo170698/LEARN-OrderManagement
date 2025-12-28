@@ -19,7 +19,8 @@ public class UpdateOrderCommandValidator : AbstractValidator<UpdateOrderCommand>
         When(x => !string.IsNullOrWhiteSpace(x.CustomerName), () =>
         {
             RuleFor(x => x.CustomerName)
-                .MaximumLength(200).WithMessage("Customer name must not exceed 200 characters");
+                .MaximumLength(200).WithMessage("Customer name must not exceed 200 characters")
+                .Must(ValidationHelpers.IsSanitized).WithMessage(ValidationHelpers.GetDangerousCharactersMessage());
         });
 
         When(x => !string.IsNullOrWhiteSpace(x.CustomerEmail), () =>

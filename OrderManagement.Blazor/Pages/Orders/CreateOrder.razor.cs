@@ -79,6 +79,18 @@ public partial class CreateOrder
                 return;
             }
 
+            if (InputSanitizer.ContainsDangerousCharacters(orderInput.CustomerName))
+            {
+                errorMessage = InputSanitizer.GetValidationMessage() + " (Customer Name)";
+                return;
+            }
+
+            if (orderInput.Items.Any(i => InputSanitizer.ContainsDangerousCharacters(i.ProductName)))
+            {
+                errorMessage = InputSanitizer.GetValidationMessage() + " (Product Name)";
+                return;
+            }
+
             var input = new CreateOrderInput
             {
                 CustomerName = orderInput.CustomerName,

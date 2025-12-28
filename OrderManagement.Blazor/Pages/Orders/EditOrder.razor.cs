@@ -149,6 +149,18 @@ public partial class EditOrder
                 return;
             }
 
+            if (InputSanitizer.ContainsDangerousCharacters(orderInput.CustomerName))
+            {
+                errorMessage = InputSanitizer.GetValidationMessage() + " (Customer Name)";
+                return;
+            }
+
+            if (orderInput.Items.Any(i => InputSanitizer.ContainsDangerousCharacters(i.ProductName)))
+            {
+                errorMessage = InputSanitizer.GetValidationMessage() + " (Product Name)";
+                return;
+            }
+
             OrderStatus? parsedStatus = null;
             if (!string.IsNullOrEmpty(selectedStatus))
             {

@@ -9,7 +9,8 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
     {
         RuleFor(x => x.CustomerName)
             .NotEmpty().WithMessage("Customer name is required")
-            .MaximumLength(200).WithMessage("Customer name must not exceed 200 characters");
+            .MaximumLength(200).WithMessage("Customer name must not exceed 200 characters")
+            .Must(ValidationHelpers.IsSanitized).WithMessage(ValidationHelpers.GetDangerousCharactersMessage());
 
         RuleFor(x => x.CustomerEmail)
             .NotEmpty().WithMessage("Customer email is required")
@@ -24,7 +25,8 @@ public class CreateOrderCommandValidator : AbstractValidator<CreateOrderCommand>
         {
             item.RuleFor(x => x.ProductName)
                 .NotEmpty().WithMessage("Product name is required")
-                .MaximumLength(200).WithMessage("Product name must not exceed 200 characters");
+                .MaximumLength(200).WithMessage("Product name must not exceed 200 characters")
+                .Must(ValidationHelpers.IsSanitized).WithMessage(ValidationHelpers.GetDangerousCharactersMessage());
 
             item.RuleFor(x => x.Quantity)
                 .GreaterThan(0).WithMessage("Quantity must be greater than 0");
