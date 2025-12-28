@@ -14,7 +14,7 @@ public static class ValidationResultExtensions
     public static Result<T> ToFailureResult<T>(this ValidationResult validationResult)
     {
         var errors = validationResult.Errors.Select(e =>
-            new Error(Error.Codes.ValidationError, e.PropertyName, e.ErrorMessage)
+            new Error(ErrorCodes.ValidationError, e.PropertyName, e.ErrorMessage)
         ).ToArray();
 
         return Result<T>.Failure(errors);

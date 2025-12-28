@@ -21,21 +21,6 @@ public class OrderRepository : Repository<Order>, IOrderRepository
             .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
     }
 
-    public async Task<IEnumerable<Order>> GetAllOrdersWithItemsAsync(CancellationToken cancellationToken = default)
-    {
-        return await _dbSet
-            .Include(o => o.Items)
-            .OrderByDescending(o => o.CreatedAt)
-            .ToListAsync(cancellationToken);
-    }
-
-    public IQueryable<Order> GetOrdersWithItemsQueryable()
-    {
-        return _dbSet
-            .Include(o => o.Items)
-            .OrderByDescending(o => o.CreatedAt);
-    }
-
     public IQueryable<Order> GetOrdersQueryable()
     {
         // NO Include - optimized for list view without items

@@ -18,16 +18,6 @@ public class Repository<T> : IRepository<T> where T : class
         _dbSet = context.Set<T>();
     }
 
-    public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        return await _dbSet.FindAsync([id], cancellationToken);
-    }
-
-    public virtual async Task<IEnumerable<T>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await _dbSet.ToListAsync(cancellationToken);
-    }
-
     public virtual IQueryable<T> GetQueryable()
     {
         return _dbSet.AsQueryable();
@@ -47,16 +37,10 @@ public class Repository<T> : IRepository<T> where T : class
 
     public virtual async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdAsync(id, cancellationToken);
+        var entity = await _dbSet.FindAsync([id], cancellationToken);
         if (entity != null)
         {
             _dbSet.Remove(entity);
         }
-    }
-
-    public virtual async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var entity = await GetByIdAsync(id, cancellationToken);
-        return entity != null;
     }
 }

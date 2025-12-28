@@ -27,7 +27,7 @@ public class ErrorFilter : IErrorFilter
         return error.WithMessage("Validation failed")
             .WithExtensions(new Dictionary<string, object?>
             {
-                { "code", "VALIDATION_ERROR" },
+                { "code", Domain.Common.ErrorCodes.ValidationError },
                 { "fields", exception.FieldErrors }
             });
     }
@@ -46,7 +46,7 @@ public class ErrorFilter : IErrorFilter
         return error.WithMessage("A database error occurred")
             .WithExtensions(new Dictionary<string, object?>
             {
-                { "code", "DATABASE_ERROR" }
+                { "code", Domain.Common.ErrorCodes.DatabaseError }
             });
     }
 
@@ -55,7 +55,7 @@ public class ErrorFilter : IErrorFilter
         return error.WithMessage("Unauthorized")
             .WithExtensions(new Dictionary<string, object?>
             {
-                { "code", "UNAUTHORIZED" }
+                { "code", Domain.Common.ErrorCodes.Unauthorized }
             });
     }
 }

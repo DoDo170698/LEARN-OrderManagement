@@ -16,8 +16,8 @@ public static class ResultExceptionConverter
             return;
 
         // Group errors by type
-        var validationErrors = result.Errors.Where(e => e.Code == Error.Codes.ValidationError).ToList();
-        var businessErrors = result.Errors.Where(e => e.Code != Error.Codes.ValidationError).ToList();
+        var validationErrors = result.Errors.Where(e => e.Code == ErrorCodes.ValidationError).ToList();
+        var businessErrors = result.Errors.Where(e => e.Code != ErrorCodes.ValidationError).ToList();
 
         // Validation errors → ValidationFailedException
         if (validationErrors.Any())

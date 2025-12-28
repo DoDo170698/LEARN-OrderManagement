@@ -11,7 +11,7 @@ public static class ResultExtensions
     public static Result<T> NotFound<T>(string entityName, Guid id)
     {
         return Result<T>.Failure(
-            new Error(Error.Codes.NotFound, $"{entityName} with ID '{id}' was not found.")
+            new Error(ErrorCodes.NotFound, $"{entityName} with ID '{id}' was not found.")
         );
     }
 
@@ -21,7 +21,7 @@ public static class ResultExtensions
     public static Result<T> ValidationError<T>(string field, string message)
     {
         return Result<T>.Failure(
-            new Error(Error.Codes.ValidationError, field, message)
+            new Error(ErrorCodes.ValidationError, field, message)
         );
     }
 
