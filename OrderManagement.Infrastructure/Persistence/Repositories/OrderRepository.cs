@@ -22,14 +22,4 @@ public class OrderRepository : Repository<Order>, IOrderRepository
     {
         return _dbSet;
     }
-
-    public async Task<int> GetOrderCountByYearAsync(int year, CancellationToken cancellationToken = default)
-    {
-        var startDate = new DateTime(year, 1, 1);
-        var endDate = new DateTime(year + 1, 1, 1);
-
-        return await _dbSet
-            .Where(o => o.CreatedAt >= startDate && o.CreatedAt < endDate)
-            .CountAsync(cancellationToken);
-    }
 }

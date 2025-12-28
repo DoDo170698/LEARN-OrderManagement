@@ -75,7 +75,7 @@ public static class DataSeeder
             var order = new Order
             {
                 Id = Guid.NewGuid(),
-                OrderNumber = $"ORD-{DateTime.UtcNow.Year}-{i:D4}",
+                OrderNumber = $"ORD-{Guid.NewGuid():N}",
                 CustomerName = customerName,
                 CustomerEmail = customerEmail,
                 Status = status,

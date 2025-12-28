@@ -98,7 +98,7 @@ public class OrderCqrsTests : IAsyncLifetime
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.OrderNumber.Should().StartWith("ORD-");
-        result.Value.OrderNumber.Should().Contain(DateTime.UtcNow.Year.ToString());
+        result.Value.OrderNumber.Should().HaveLength(36);
     }
 
     [Fact]

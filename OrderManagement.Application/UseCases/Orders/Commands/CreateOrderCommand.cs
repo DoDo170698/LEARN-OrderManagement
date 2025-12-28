@@ -46,7 +46,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
         {
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
 
-            var orderNumber = await GenerateOrderNumberAsync(cancellationToken);
+            var orderNumber = $"ORD-{Guid.NewGuid():N}";
 
             var order = new Order
             {
@@ -92,13 +92,5 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Res
             await _unitOfWork.RollbackTransactionAsync(cancellationToken);
             throw;
         }
-    }
-
-    private async Task<string> GenerateOrderNumberAsync(CancellationToken cancellationToken)
-    {
-        var year = DateTimeOffset.UtcNow.Year;
-        var count = await _unitOfWork.Orders.GetOrderCountByYearAsync(year, cancellationToken);
-        var nextNumber = count + 1;
-        return $"ORD-{year}-{nextNumber:D3}";
     }
 }
