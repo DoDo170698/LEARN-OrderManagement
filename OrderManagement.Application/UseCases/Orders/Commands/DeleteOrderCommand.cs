@@ -1,14 +1,15 @@
 using MediatR;
+using OrderManagement.Domain.Common;
 using OrderManagement.Domain.Interfaces;
 
 namespace OrderManagement.Application.UseCases.Orders.Commands;
 
-public class DeleteOrderCommand : IRequest<bool>
+public class DeleteOrderCommand : IRequest<Result<bool>>
 {
     public Guid Id { get; set; }
 }
 
-public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, bool>
+public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, Result<bool>>
 {
     private readonly IUnitOfWork _unitOfWork;
 
@@ -17,19 +18,19 @@ public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand, boo
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<bool> Handle(DeleteOrderCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> Handle(DeleteOrderCommand command, CancellationToken cancellationToken = default)
     {
         var order = await _unitOfWork.Orders.GetOrderWithItemsAsync(command.Id, cancellationToken);
 
         if (order == null)
         {
-            return false;
+            return ResultExtensions.NotFound<bool>("Order", command.Id);
         }
 
         // Delete order (cascade delete will remove items)
         await _unitOfWork.Orders.DeleteAsync(order.Id, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return true;
+        return Result<bool>.Success(true);
     }
 }

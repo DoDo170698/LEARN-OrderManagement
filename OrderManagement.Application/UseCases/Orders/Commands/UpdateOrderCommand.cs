@@ -1,9 +1,11 @@
 using AutoMapper;
+using FluentValidation;
 using MediatR;
+using OrderManagement.Application.Common.Extensions;
 using OrderManagement.Application.DTOs;
+using OrderManagement.Domain.Common;
 using OrderManagement.Domain.Entities;
 using OrderManagement.Domain.Enums;
-using OrderManagement.Domain.Exceptions;
 using OrderManagement.Domain.Interfaces;
 
 namespace OrderManagement.Application.UseCases.Orders.Commands;
@@ -11,7 +13,7 @@ namespace OrderManagement.Application.UseCases.Orders.Commands;
 /// <summary>
 /// Command to update an existing order
 /// </summary>
-public class UpdateOrderCommand : IRequest<OrderDto>
+public class UpdateOrderCommand : IRequest<Result<OrderDto>>
 {
     public Guid Id { get; set; }
     public string? CustomerName { get; set; }
@@ -23,19 +25,31 @@ public class UpdateOrderCommand : IRequest<OrderDto>
 /// <summary>
 /// Handler for updating an existing order
 /// </summary>
-public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, OrderDto>
+public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Result<OrderDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IValidator<UpdateOrderCommand> _validator;
 
-    public UpdateOrderCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public UpdateOrderCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IValidator<UpdateOrderCommand> validator)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _validator = validator;
     }
 
-    public async Task<OrderDto> Handle(UpdateOrderCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<OrderDto>> Handle(UpdateOrderCommand command, CancellationToken cancellationToken = default)
     {
+        // Validate command
+        var validationResult = await _validator.ValidateAsync(command, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return validationResult.ToFailureResult<OrderDto>();
+        }
+
         try
         {
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
@@ -44,7 +58,7 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Ord
 
             if (order == null)
             {
-                throw new OrderNotFoundException(command.Id);
+                return ResultExtensions.NotFound<OrderDto>("Order", command.Id);
             }
 
             // Update basic properties (always update if provided)
@@ -116,7 +130,7 @@ public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, Ord
             var updatedOrder = await _unitOfWork.Orders.GetOrderWithItemsAsync(order.Id, cancellationToken);
             var orderDto = _mapper.Map<OrderDto>(updatedOrder);
 
-            return orderDto;
+            return Result<OrderDto>.Success(orderDto);
         }
         catch
         {

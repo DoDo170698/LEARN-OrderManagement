@@ -3,9 +3,9 @@ using HotChocolate.Data;
 using MediatR;
 using OrderManagement.Application.DTOs;
 using OrderManagement.Application.UseCases.Orders.Queries;
+using OrderManagement.Domain.Common;
 using OrderManagement.Domain.Entities;
 using OrderManagement.Domain.Enums;
-using OrderManagement.GraphQL.GraphQL.Payloads;
 
 namespace OrderManagement.GraphQL.GraphQL.Queries;
 
@@ -32,7 +32,7 @@ public class OrderQueries
     }
 
     /// <summary>
-    /// Gets a specific order by ID
+    /// Gets a specific order by ID with items
     /// </summary>
     [Authorize]
     public async Task<OrderDto> GetOrderByIdAsync(
@@ -40,15 +40,7 @@ public class OrderQueries
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        // ✅ CORRECT: Go through CQRS layer
-        var query = new GetOrderByIdQuery { Id = id };
-        var order = await mediator.Send(query, cancellationToken);
-
-        if (order == null)
-        {
-            throw new OrderNotFoundError(id);
-        }
-
-        return order;
+        var result = await mediator.Send(new GetOrderByIdQuery { Id = id }, cancellationToken);
+        return result.GetValueOrThrow();
     }
 }

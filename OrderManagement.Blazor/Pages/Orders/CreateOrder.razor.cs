@@ -20,6 +20,7 @@ public partial class CreateOrder
 
     private bool isSubmitting = false;
     private string? errorMessage;
+    private Dictionary<string, string> fieldErrors = new();
 
     private void AddItem()
     {
@@ -96,14 +97,42 @@ public partial class CreateOrder
 
             var result = await GraphQLClient.CreateOrder.ExecuteAsync(input);
 
-            if (result.Data?.CreateOrder?.Order != null)
+            if (result.Data?.CreateOrder != null)
             {
-                var orderId = result.Data.CreateOrder.Order.Id;
+                // Success - order returned directly (GraphQL standard)
+                var orderId = result.Data.CreateOrder.Id;
                 Navigation.NavigateTo($"/orders/{orderId}");
             }
             else if (result.Errors?.Count > 0)
             {
+                // GraphQL standard - errors in top-level errors array
                 errorMessage = ErrorMessageHelper.GetErrorMessage(result);
+
+                // Extract field-level errors from extensions if present
+                fieldErrors.Clear();
+                var firstError = result.Errors.First();
+                if (firstError.Extensions != null && firstError.Extensions.ContainsKey("fields"))
+                {
+                    var fields = firstError.Extensions["fields"] as Dictionary<string, object>;
+                    if (fields != null)
+                    {
+                        foreach (var field in fields)
+                        {
+                            if (field.Value is string[] messages && messages.Length > 0)
+                            {
+                                fieldErrors[field.Key] = messages[0];
+                            }
+                            else if (field.Value is string message)
+                            {
+                                fieldErrors[field.Key] = message;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                errorMessage = "Failed to create order. Please try again.";
             }
         }
         catch (Exception ex)

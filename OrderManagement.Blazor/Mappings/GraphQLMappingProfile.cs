@@ -14,7 +14,7 @@ public class GraphQLMappingProfile : Profile
         // Map from GetOrdersList query result (Connection with edges, NO items)
         CreateMap<IGetOrdersList_Orders_Edges_Node, OrderViewModel>();
 
-        // Map from GetOrderDetails query result (includes items)
+        // Map from GetOrderDetails query result (returns order directly, GraphQL standard)
         CreateMap<IGetOrderDetails_OrderById, OrderViewModel>();
         CreateMap<IGetOrderDetails_OrderById_Items, OrderItemViewModel>();
 

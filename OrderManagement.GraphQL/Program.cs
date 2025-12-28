@@ -23,6 +23,9 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Add Application Layer (AutoMapper, FluentValidation, CQRS Handlers)
 builder.Services.AddApplication();
 
+// Add AutoMapper for GraphQL layer (Input -> Command mapping)
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
 // Add CORS with restricted policy
 builder.Services.AddCors(options =>
 {

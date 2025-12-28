@@ -23,6 +23,7 @@ public partial class EditOrder
     private bool isLoading = true;
     private bool isSubmitting = false;
     private string? errorMessage;
+    private Dictionary<string, string> fieldErrors = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -40,6 +41,7 @@ public partial class EditOrder
 
             if (result.Data?.OrderById != null)
             {
+                // Success - order returned directly (GraphQL standard)
                 order = result.Data.OrderById;
 
                 // Populate form with current values
@@ -63,7 +65,12 @@ public partial class EditOrder
             }
             else if (result.Errors?.Count > 0)
             {
+                // GraphQL standard - errors in top-level errors array
                 errorMessage = ErrorMessageHelper.GetErrorMessage(result);
+            }
+            else
+            {
+                errorMessage = "Failed to load order.";
             }
         }
         catch (Exception ex)
@@ -167,14 +174,41 @@ public partial class EditOrder
 
             var result = await GraphQLClient.UpdateOrder.ExecuteAsync(input);
 
-            if (result.Data?.UpdateOrder?.Order != null)
+            if (result.Data?.UpdateOrder != null)
             {
-                // Navigate to detail page
+                // Success - order returned directly (GraphQL standard)
                 Navigation.NavigateTo($"/orders/{Id}");
             }
             else if (result.Errors?.Count > 0)
             {
+                // GraphQL standard - errors in top-level errors array
                 errorMessage = ErrorMessageHelper.GetErrorMessage(result);
+
+                // Extract field-level errors from extensions if present
+                fieldErrors.Clear();
+                var firstError = result.Errors.First();
+                if (firstError.Extensions != null && firstError.Extensions.ContainsKey("fields"))
+                {
+                    var fields = firstError.Extensions["fields"] as Dictionary<string, object>;
+                    if (fields != null)
+                    {
+                        foreach (var field in fields)
+                        {
+                            if (field.Value is string[] messages && messages.Length > 0)
+                            {
+                                fieldErrors[field.Key] = messages[0];
+                            }
+                            else if (field.Value is string message)
+                            {
+                                fieldErrors[field.Key] = message;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                errorMessage = "Failed to update order. Please try again.";
             }
         }
         catch (Exception ex)

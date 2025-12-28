@@ -42,9 +42,9 @@ query GetOrdersList(
 }
 
 # ============================================
-# OPTIMIZED QUERY 2: Get Order Details with Items
-# Use this for detail pages - includes all items
-# Note: orderById returns OrderDto (not Order entity)
+# OPTIMIZED QUERY 2: Get Order Details
+# Returns order directly (GraphQL standard)
+# Errors appear in top-level errors array
 # ============================================
 query GetOrderDetails($orderId: UUID!) {
   orderById(id: $orderId) {
@@ -67,46 +67,45 @@ query GetOrderDetails($orderId: UUID!) {
 }
 
 # ============================================
-# OPTIMIZED MUTATION 1: Create Order (NO items in response)
-# Items already provided in input, no need to return them
+# OPTIMIZED MUTATION 1: Create Order
+# Returns order directly (GraphQL standard)
+# Errors appear in top-level errors array
 # ============================================
 mutation CreateOrder($input: CreateOrderInput!) {
   createOrder(input: $input) {
-    order {
-      id
-      orderNumber
-      customerName
-      customerEmail
-      status
-      totalAmount
-      createdAt
-      updatedAt
-    }
+    id
+    orderNumber
+    customerName
+    customerEmail
+    status
+    totalAmount
+    createdAt
+    updatedAt
   }
 }
 
 # ============================================
-# OPTIMIZED MUTATION 2: Update Order (NO items in response)
-# Only returns updated order fields
+# OPTIMIZED MUTATION 2: Update Order
+# Returns updated order directly (GraphQL standard)
+# Errors appear in top-level errors array
 # ============================================
 mutation UpdateOrder($input: UpdateOrderInput!) {
   updateOrder(input: $input) {
-    order {
-      id
-      orderNumber
-      customerName
-      customerEmail
-      status
-      totalAmount
-      createdAt
-      updatedAt
-    }
+    id
+    orderNumber
+    customerName
+    customerEmail
+    status
+    totalAmount
+    createdAt
+    updatedAt
   }
 }
 
 # ============================================
 # MUTATION 3: Delete Order
-# Deletes an order and all its items
+# Returns boolean (GraphQL standard)
+# Errors appear in top-level errors array
 # ============================================
 mutation DeleteOrder($id: UUID!) {
   deleteOrder(id: $id)

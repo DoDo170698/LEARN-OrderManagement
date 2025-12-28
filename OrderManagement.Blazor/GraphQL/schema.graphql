@@ -5,8 +5,8 @@ schema {
 }
 
 type Mutation {
-  createOrder(input: CreateOrderInput!): CreateOrderPayload!
-  updateOrder(input: UpdateOrderInput!): UpdateOrderPayload!
+  createOrder(input: CreateOrderInput!): OrderDto!
+  updateOrder(input: UpdateOrderInput!): OrderDto!
   deleteOrder(id: UUID!): Boolean!
 }
 
@@ -264,18 +264,10 @@ input UpdateOrderInput {
   items: [CreateOrderItemInput!]
 }
 
-type UpdateOrderPayload {
-  order: OrderDto
-}
-
 input CreateOrderInput {
   customerName: String!
   customerEmail: String!
   items: [CreateOrderItemInput!]!
-}
-
-type CreateOrderPayload {
-  order: OrderDto!
 }
 
 type OrderDto {

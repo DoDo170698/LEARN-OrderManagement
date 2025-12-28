@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Components;
 using OrderManagement.Blazor.GraphQL;
+using OrderManagement.Blazor.Helpers;
 using OrderManagement.Blazor.ViewModels;
 using OrderManagement.Blazor.Resources.Pages.Orders;
 
@@ -95,7 +96,7 @@ public partial class OrderList : IDisposable
             }
             else if (result.Errors?.Count > 0)
             {
-                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
+                errorMessage = ErrorMessageHelper.GetErrorMessage(result);
             }
         }
         catch (Exception ex)
@@ -374,7 +375,8 @@ public partial class OrderList : IDisposable
             }
             else if (result.Errors?.Count > 0)
             {
-                errorMessage = string.Join(", ", result.Errors.Select(e => e.Message));
+                // GraphQL standard - errors in top-level errors array
+                errorMessage = ErrorMessageHelper.GetErrorMessage(result);
                 showDeleteConfirmation = false;
             }
             else

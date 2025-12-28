@@ -1,6 +1,9 @@
 using AutoMapper;
+using FluentValidation;
 using MediatR;
+using OrderManagement.Application.Common.Extensions;
 using OrderManagement.Application.DTOs;
+using OrderManagement.Domain.Common;
 using OrderManagement.Domain.Entities;
 using OrderManagement.Domain.Enums;
 using OrderManagement.Domain.Interfaces;
@@ -10,7 +13,7 @@ namespace OrderManagement.Application.UseCases.Orders.Commands;
 /// <summary>
 /// Command to create a new order
 /// </summary>
-public class CreateOrderCommand : IRequest<OrderDto>
+public class CreateOrderCommand : IRequest<Result<OrderDto>>
 {
     public string CustomerName { get; set; } = string.Empty;
     public string CustomerEmail { get; set; } = string.Empty;
@@ -20,19 +23,31 @@ public class CreateOrderCommand : IRequest<OrderDto>
 /// <summary>
 /// Handler for creating a new order
 /// </summary>
-public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderDto>
+public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Result<OrderDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IValidator<CreateOrderCommand> _validator;
 
-    public CreateOrderCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public CreateOrderCommandHandler(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IValidator<CreateOrderCommand> validator)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _validator = validator;
     }
 
-    public async Task<OrderDto> Handle(CreateOrderCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<OrderDto>> Handle(CreateOrderCommand command, CancellationToken cancellationToken = default)
     {
+        // Validate command
+        var validationResult = await _validator.ValidateAsync(command, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return validationResult.ToFailureResult<OrderDto>();
+        }
+
         try
         {
             await _unitOfWork.BeginTransactionAsync(cancellationToken);
@@ -82,7 +97,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
             var createdOrder = await _unitOfWork.Orders.GetOrderWithItemsAsync(order.Id, cancellationToken);
             var orderDto = _mapper.Map<OrderDto>(createdOrder);
 
-            return orderDto;
+            return Result<OrderDto>.Success(orderDto);
         }
         catch
         {
