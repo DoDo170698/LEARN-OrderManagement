@@ -582,6 +582,24 @@ dotnet publish -c Release -o ./publish
 6. **Set Environment Variables** for sensitive configuration
 7. **Use Connection Pooling** for WebSocket subscriptions at scale
 
+## Security & Quality Implementations
+
+### Security Measures (XSS, Injection, Leaks, Concurrency)
+- **Anti-XSS:** Leverages Blazor's automatic HTML encoding and strict rendering context to neutralize Cross-Site Scripting (XSS) attacks.
+- **Injection Protection:** 
+  - **SQL Injection:** Mitigated via Entity Framework Core's parameterized queries.
+  - **Query Injection:** Prevented by HotChocolate's strongly-typed GraphQL schema and validation.
+- **Token Leakage:** Secrets are externalized to `appsettings.json` (and Environment Variables in production), preventing hardcoded secrets in source control.
+- **Concurrency Handling:** Scoped database contexts and transactional command execution ensure data integrity during concurrent operations.
+
+### System Capabilities
+- **Observability:** Comprehensive logging configured via `Microsoft.Extensions.Logging` (ILogger) for monitoring system health and request flows.
+- **Scalability:** Implements **CQRS** (Command Query Responsibility Segregation) and **Clean Architecture**, allowing independent scaling of read/write workloads and modular service growth.
+- **Performance:** **GraphQL Data Loaders** and **Projections** prevent N+1 problems and over-fetching, ensuring optimal database queries.
+- **Code Quality:** Built on **SOLID** principles with clear separation of concerns (Domain, Application, Infrastructure) and standardized **MediatR** patterns.
+- **Security:** Robust **JWT** authentication with configurable validation logic (Issuer, Audience, Lifetime).
+- **Maintenance Ability:** Highly modular codebase with isolated Domain entities and Use Cases, making the system easy to test, debug, and extend.
+
 ## License
 
 This project is for educational and demonstration purposes.
