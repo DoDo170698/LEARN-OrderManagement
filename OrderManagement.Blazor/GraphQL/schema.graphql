@@ -16,6 +16,8 @@ type Order {
   items("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ItemsConnection
   "Total amount of the order"
   totalAmount: Decimal!
+  "Count of items in this order (computed via DB)"
+  itemCount: Int
   id: UUID!
   orderNumber: String!
   customerName: String!

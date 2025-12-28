@@ -5,9 +5,6 @@ using OrderManagement.Domain.Interfaces;
 
 namespace OrderManagement.Infrastructure.Persistence.Repositories;
 
-/// <summary>
-/// Repository implementation for Order entity
-/// </summary>
 public class OrderRepository : Repository<Order>, IOrderRepository
 {
     public OrderRepository(ApplicationDbContext context) : base(context)
@@ -34,5 +31,21 @@ public class OrderRepository : Repository<Order>, IOrderRepository
         return await _dbSet
             .Where(o => o.CreatedAt >= startDate && o.CreatedAt < endDate)
             .CountAsync(cancellationToken);
+    }
+
+    public async Task<int> GetItemCountAsync(Guid orderId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<OrderItem>()
+            .Where(item => item.OrderId == orderId)
+            .CountAsync(cancellationToken);
+    }
+
+    public async Task<decimal> GetTotalAmountAsync(Guid orderId, CancellationToken cancellationToken = default)
+    {
+        var items = await _context.Set<OrderItem>()
+            .Where(item => item.OrderId == orderId)
+            .ToListAsync(cancellationToken);
+
+        return items.Sum(item => item.Quantity * item.UnitPrice);
     }
 }

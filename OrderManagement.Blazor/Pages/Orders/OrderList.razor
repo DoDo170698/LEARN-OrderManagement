@@ -130,6 +130,11 @@
                                         }
                                     </div>
                                 </th>
+                                <th class="border-0">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-box-seam me-2"></i>Items
+                                    </div>
+                                </th>
                                 <th class="border-0" style="cursor: pointer;" @onclick='() => SortByAsync("STATUS")'>
                                     <div class="d-flex align-items-center">
                                         <i class="bi bi-flag me-2"></i>@OrderListResources.Status
@@ -168,6 +173,11 @@
                                     <td class="text-muted small">@order.CustomerEmail</td>
                                     <td>
                                         <span class="fw-semibold text-success">$@order.TotalAmount.ToString("N2")</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                            @order.ItemCount
+                                        </span>
                                     </td>
                                     <td>
                                         <span class="badge @GetStatusBadgeClass(order.Status)">

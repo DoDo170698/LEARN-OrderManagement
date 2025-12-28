@@ -91,9 +91,17 @@ public partial class OrderList : IDisposable
                 errorMessage = ErrorMessageHelper.GetErrorMessage(result);
             }
         }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrders");
+        }
+        catch (OperationCanceledException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrders");
+        }
         catch (Exception ex)
         {
-            errorMessage = string.Format(OrderListResources.FailedToLoadOrders, ex.Message);
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrders");
         }
         finally
         {
@@ -320,10 +328,13 @@ public partial class OrderList : IDisposable
 
             subscriptionsActive = true;
         }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"[Subscription] Network error: {ex.Message}");
+        }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to setup realtime subscriptions: {ex.Message}");
-            // Continue without realtime updates
+            Console.WriteLine($"[Subscription] Failed to setup realtime: {ex.Message}");
         }
     }
 
@@ -377,9 +388,19 @@ public partial class OrderList : IDisposable
                 showDeleteConfirmation = false;
             }
         }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder");
+            showDeleteConfirmation = false;
+        }
+        catch (OperationCanceledException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder");
+            showDeleteConfirmation = false;
+        }
         catch (Exception ex)
         {
-            errorMessage = string.Format(OrderListResources.FailedToDeleteOrder, ex.Message);
+            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder");
             showDeleteConfirmation = false;
         }
         finally

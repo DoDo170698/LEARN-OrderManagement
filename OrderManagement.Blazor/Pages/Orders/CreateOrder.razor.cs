@@ -130,9 +130,17 @@ public partial class CreateOrder
                 errorMessage = "Failed to create order. Please try again.";
             }
         }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "CreateOrder");
+        }
+        catch (OperationCanceledException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "CreateOrder");
+        }
         catch (Exception ex)
         {
-            errorMessage = string.Format(CreateOrderResources.FailedToCreateOrder, ex.Message);
+            errorMessage = ErrorMessageHelper.HandleException(ex, "CreateOrder");
         }
         finally
         {

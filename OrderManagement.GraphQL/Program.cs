@@ -68,11 +68,10 @@ builder.Services
     .AddInMemorySubscriptions()
     .AddAuthorization()
     .AddErrorFilter<ErrorFilter>()
-    // FIX: Disable cost enforcement to prevent "maximum allowed field cost exceeded" error
     .ModifyCostOptions(options =>
     {
-        options.EnforceCostLimits = false; // Disable cost limit enforcement
-        options.MaxFieldCost = int.MaxValue; // Set to maximum value as backup
+        options.EnforceCostLimits = true;
+        options.MaxFieldCost = 5000;
     });
 
 var app = builder.Build();

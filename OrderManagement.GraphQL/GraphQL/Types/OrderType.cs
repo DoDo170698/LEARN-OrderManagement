@@ -1,11 +1,9 @@
 using HotChocolate.Types;
 using OrderManagement.Domain.Entities;
+using OrderManagement.GraphQL.GraphQL.Resolvers;
 
 namespace OrderManagement.GraphQL.GraphQL.Types;
 
-/// <summary>
-/// GraphQL Object Type configuration for Order entity
-/// </summary>
 public class OrderType : ObjectType<Order>
 {
     protected override void Configure(IObjectTypeDescriptor<Order> descriptor)
@@ -15,12 +13,13 @@ public class OrderType : ObjectType<Order>
             .Description("Represents a customer order with items");
 
         descriptor
-            .Field(o => o.Items)
-            .UsePaging<OrderItemType>()
-            .Description("Order items with pagination support");
+            .Field("totalAmount")
+            .Type<DecimalType>()
+            .ResolveWith<OrderResolvers>(r => r.GetTotalAmountAsync(default!, default!, default!));
 
         descriptor
-            .Field(o => o.TotalAmount)
-            .Description("Total amount of the order");
+            .Field("itemCount")
+            .Type<IntType>()
+            .ResolveWith<OrderResolvers>(r => r.GetItemCountAsync(default!, default!, default!));
     }
 }

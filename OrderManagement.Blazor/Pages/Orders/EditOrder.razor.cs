@@ -68,9 +68,17 @@ public partial class EditOrder
                 errorMessage = "Failed to load order.";
             }
         }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrder");
+        }
+        catch (OperationCanceledException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrder");
+        }
         catch (Exception ex)
         {
-            errorMessage = string.Format(EditOrderResources.FailedToLoadOrder, ex.Message);
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrder");
         }
         finally
         {
@@ -199,9 +207,17 @@ public partial class EditOrder
                 errorMessage = "Failed to update order. Please try again.";
             }
         }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "UpdateOrder");
+        }
+        catch (OperationCanceledException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "UpdateOrder");
+        }
         catch (Exception ex)
         {
-            errorMessage = string.Format(EditOrderResources.FailedToUpdateOrder, ex.Message);
+            errorMessage = ErrorMessageHelper.HandleException(ex, "UpdateOrder");
         }
         finally
         {

@@ -49,9 +49,17 @@ public partial class OrderDetail
                 errorMessage = OrderDetailResources.OrderNotFound;
             }
         }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrderDetail");
+        }
+        catch (OperationCanceledException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrderDetail");
+        }
         catch (Exception ex)
         {
-            errorMessage = string.Format(OrderDetailResources.FailedToLoadOrder, ex.Message);
+            errorMessage = ErrorMessageHelper.HandleException(ex, "LoadOrderDetail");
         }
         finally
         {
@@ -110,9 +118,19 @@ public partial class OrderDetail
                 showDeleteConfirmation = false;
             }
         }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder");
+            showDeleteConfirmation = false;
+        }
+        catch (OperationCanceledException ex)
+        {
+            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder");
+            showDeleteConfirmation = false;
+        }
         catch (Exception ex)
         {
-            errorMessage = string.Format(OrderDetailResources.FailedToDeleteOrder, ex.Message);
+            errorMessage = ErrorMessageHelper.HandleException(ex, "DeleteOrder");
             showDeleteConfirmation = false;
         }
         finally

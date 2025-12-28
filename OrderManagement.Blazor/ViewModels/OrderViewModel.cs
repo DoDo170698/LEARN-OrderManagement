@@ -13,6 +13,7 @@ public class OrderViewModel
     public string CustomerEmail { get; set; } = string.Empty;
     public OrderStatus Status { get; set; }
     public decimal TotalAmount { get; set; }
+    public int ItemCount { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public List<OrderItemViewModel> Items { get; set; } = new();

@@ -26,7 +26,6 @@ public class OrderQueries
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
     {
-        // ✅ CORRECT: Go through CQRS layer
         var query = new GetOrdersQuery();
         return await mediator.Send(query, cancellationToken);
     }
