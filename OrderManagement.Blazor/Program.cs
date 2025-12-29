@@ -8,24 +8,30 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<ITokenService, TokenService>();
 
 builder.Services
     .AddOrderManagementClient()
-    .ConfigureHttpClient((sp, client) =>
+    .ConfigureHttpClient(async (sp, client) =>
     {
         var config = sp.GetRequiredService<IConfiguration>();
+        var tokenService = sp.GetRequiredService<ITokenService>();
+
         var endpoint = config["GraphQL:Endpoint"]!;
-        var token = config["GraphQL:JwtToken"]!;
+        var token = await tokenService.GetTokenAsync();
 
         client.BaseAddress = new Uri(endpoint);
         client.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
     })
-    .ConfigureWebSocketClient((sp, client) =>
+    .ConfigureWebSocketClient(async (sp, client) =>
     {
         var config = sp.GetRequiredService<IConfiguration>();
+        var tokenService = sp.GetRequiredService<ITokenService>();
+
         var wsEndpoint = config["GraphQL:WebSocketEndpoint"]!;
-        var token = config["GraphQL:JwtToken"]!;
+        var token = await tokenService.GetTokenAsync();
 
         client.Uri = new Uri(wsEndpoint);
         client.ConnectionInterceptor = new WebSocketAuthInterceptor(token);

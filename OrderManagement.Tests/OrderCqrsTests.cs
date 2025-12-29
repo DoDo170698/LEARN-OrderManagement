@@ -39,6 +39,7 @@ public class OrderCqrsTests : IAsyncLifetime
         services.AddSingleton<IMapper>(mapperConfig.CreateMapper());
 
         services.AddValidatorsFromAssemblyContaining<CreateOrderCommandValidator>();
+        services.AddLogging();
 
         services.AddMediatR(typeof(CreateOrderCommand).Assembly);
 

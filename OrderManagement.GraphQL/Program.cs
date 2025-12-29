@@ -1,6 +1,8 @@
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using OrderManagement.Application;
+using OrderManagement.Application.UseCases.Auth.Commands;
 using OrderManagement.GraphQL.GraphQL.DataLoaders;
 using OrderManagement.GraphQL.GraphQL.Filters;
 using OrderManagement.GraphQL.GraphQL.Mutations;
@@ -15,7 +17,6 @@ var builder = WebApplication.CreateBuilder(args);
 var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
-var staticToken = builder.Configuration["Jwt:StaticToken"]!;
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
@@ -91,6 +92,18 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseWebSockets();
+
+app.MapPost("/api/auth/token", async (IMediator mediator, IConfiguration config) =>
+{
+    var command = new GenerateTokenCommand(
+        config["Jwt:SecretKey"]!,
+        config["Jwt:Issuer"]!,
+        config["Jwt:Audience"]!
+    );
+    var result = await mediator.Send(command);
+    return Results.Ok(result);
+});
+
 app.MapGraphQL();
 
 app.Logger.LogInformation("================================");
