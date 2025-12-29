@@ -1,15 +1,19 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using OrderManagement.Application;
 using OrderManagement.Application.UseCases.Auth.Commands;
+using OrderManagement.Application.UseCases.Orders.Commands;
+using OrderManagement.Application.Validators;
+using OrderManagement.Domain.Interfaces;
 using OrderManagement.GraphQL.GraphQL.DataLoaders;
 using OrderManagement.GraphQL.GraphQL.Filters;
 using OrderManagement.GraphQL.GraphQL.Mutations;
 using OrderManagement.GraphQL.GraphQL.Queries;
 using OrderManagement.GraphQL.GraphQL.Types;
-using OrderManagement.Infrastructure;
 using OrderManagement.Infrastructure.Persistence;
+using OrderManagement.Infrastructure.Persistence.Repositories;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,9 +22,15 @@ var jwtSecretKey = builder.Configuration["Jwt:SecretKey"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
-builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddApplication();
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
+builder.Services.AddAutoMapper(typeof(CreateOrderCommand).Assembly, typeof(Program).Assembly);
+builder.Services.AddValidatorsFromAssembly(typeof(CreateOrderCommandValidator).Assembly);
+builder.Services.AddMediatR(typeof(CreateOrderCommand).Assembly);
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+builder.Services.AddDbContextPool<ApplicationDbContext>(options => options.UseSqlite(connectionString));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 
 builder.Services.AddCors(options =>
 {

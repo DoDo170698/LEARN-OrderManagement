@@ -24,14 +24,4 @@ public static class ResultExtensions
             new Error(ErrorCodes.ValidationError, field, message)
         );
     }
-
-    /// <summary>
-    /// Gets the value from Result or throws appropriate exception
-    /// Converts Result failures to GraphQL standard exceptions
-    /// </summary>
-    public static T GetValueOrThrow<T>(this Result<T> result)
-    {
-        ResultExceptionConverter.ThrowIfFailure(result);
-        return result.Value!;
-    }
 }

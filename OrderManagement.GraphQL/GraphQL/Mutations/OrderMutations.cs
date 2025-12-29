@@ -1,4 +1,5 @@
 using AutoMapper;
+using HotChocolate;
 using HotChocolate.Authorization;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
@@ -30,10 +31,18 @@ public class OrderMutations
         var command = mapper.Map<CreateOrderCommand>(input);
         var result = await mediator.Send(command, cancellationToken);
 
-        if (result.IsSuccess)
-            await eventSender.SendAsync(nameof(OrderSubscriptions.OnOrderCreated), result.Value!, cancellationToken);
+        if (!result.IsSuccess)
+        {
+            var firstError = result.Errors.First();
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(firstError.Message)
+                    .SetExtension("code", firstError.Code)
+                    .Build());
+        }
 
-        return result.GetValueOrThrow();
+        await eventSender.SendAsync(nameof(OrderSubscriptions.OnOrderCreated), result.Value!, cancellationToken);
+        return result.Value!;
     }
 
     /// <summary>
@@ -50,10 +59,18 @@ public class OrderMutations
         var command = mapper.Map<UpdateOrderCommand>(input);
         var result = await mediator.Send(command, cancellationToken);
 
-        if (result.IsSuccess)
-            await eventSender.SendAsync(nameof(OrderSubscriptions.OnOrderUpdated), result.Value!, cancellationToken);
+        if (!result.IsSuccess)
+        {
+            var firstError = result.Errors.First();
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(firstError.Message)
+                    .SetExtension("code", firstError.Code)
+                    .Build());
+        }
 
-        return result.GetValueOrThrow();
+        await eventSender.SendAsync(nameof(OrderSubscriptions.OnOrderUpdated), result.Value!, cancellationToken);
+        return result.Value!;
     }
 
     /// <summary>
@@ -68,9 +85,17 @@ public class OrderMutations
     {
         var result = await mediator.Send(new DeleteOrderCommand { Id = id }, cancellationToken);
 
-        if (result.IsSuccess)
-            await eventSender.SendAsync(nameof(OrderSubscriptions.OnOrderDeleted), id, cancellationToken);
+        if (!result.IsSuccess)
+        {
+            var firstError = result.Errors.First();
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(firstError.Message)
+                    .SetExtension("code", firstError.Code)
+                    .Build());
+        }
 
-        return result.GetValueOrThrow();
+        await eventSender.SendAsync(nameof(OrderSubscriptions.OnOrderDeleted), id, cancellationToken);
+        return result.Value;
     }
 }

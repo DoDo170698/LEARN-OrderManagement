@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.Authorization;
 using HotChocolate.Data;
 using MediatR;
@@ -40,6 +41,17 @@ public class OrderQueries
         CancellationToken cancellationToken)
     {
         var result = await mediator.Send(new GetOrderByIdQuery { Id = id }, cancellationToken);
-        return result.GetValueOrThrow();
+
+        if (!result.IsSuccess)
+        {
+            var firstError = result.Errors.First();
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(firstError.Message)
+                    .SetExtension("code", firstError.Code)
+                    .Build());
+        }
+
+        return result.Value!;
     }
 }
