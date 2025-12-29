@@ -10,7 +10,7 @@ A complete Order Management System built with GraphQL, Blazor Server, and Clean 
 - **Clean Architecture** - Separation of concerns with Domain, Application, Infrastructure layers
 - **CQRS + MediatR** - Command Query Responsibility Segregation pattern
 - **SQLite** - Lightweight persistent database
-- **JWT Bearer Authentication** - Secure API with static token
+- **JWT Bearer Authentication** - Dynamic token generation via CQRS command
 - **GraphQL Subscriptions** - Real-time updates via WebSocket
 
 ### Frontend (Blazor)
@@ -51,7 +51,7 @@ SourceCode/
 - Order statuses: Pending, Processing, Completed, Cancelled
 - Multiple order items per order
 - Automatic total calculation
-- Order number auto-generation
+- Order number auto-generation (GUID-based, zero race conditions)
 - Timestamp tracking (Created, Updated)
 
 ## Getting Started
@@ -77,18 +77,15 @@ GraphQL Server Started
 ================================
 GraphQL Endpoint: http://localhost:5118/graphql
 
-Database: SQLite
+Database: SQLite (ordermanagement.db)
 Architecture: Clean Architecture + CQRS + MediatR
-Auth: JWT Bearer Token (Static)
+Auth: JWT Bearer Token (Dynamic generation)
 
-JWT Token (copy this):
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-
-Token Details:
+Token API: http://localhost:5118/api/auth/token
   - User: Mock Admin User
   - Email: admin@example.com
   - Role: Admin
-  - Expires: 2035 (long-lived for testing)
+  - Expires: 1 year from generation
 ================================
 ```
 
@@ -107,7 +104,10 @@ The Blazor app will start on **http://localhost:5101**
 
 Navigate to **http://localhost:5101** in your browser.
 
-The application automatically connects to the GraphQL server using the JWT token configured in `appsettings.json`.
+The application automatically:
+1. Calls `/api/auth/token` to get a fresh JWT token
+2. Caches the token for subsequent requests
+3. Connects to GraphQL server with authentication
 
 ## Configuration
 
@@ -131,7 +131,7 @@ The application automatically connects to the GraphQL server using the JWT token
   "GraphQL": {
     "Endpoint": "http://localhost:5118/graphql",
     "WebSocketEndpoint": "ws://localhost:5118/graphql",
-    "JwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    "TokenEndpoint": "http://localhost:5118/api/auth/token"
   }
 }
 ```
@@ -146,7 +146,7 @@ The application automatically connects to the GraphQL server using the JWT token
 - No external dependencies
 
 **Application Layer** (`OrderManagement.Application`)
-- CQRS Commands: CreateOrderCommand, UpdateOrderCommand, DeleteOrderCommand
+- CQRS Commands: CreateOrderCommand, UpdateOrderCommand, DeleteOrderCommand, GenerateTokenCommand
 - CQRS Queries: GetOrdersQuery, GetOrderByIdQuery
 - Command/Query Handlers using MediatR
 - DTOs: OrderDto, OrderItemDto, CreateOrderDto, UpdateOrderDto
@@ -224,11 +224,24 @@ var orders = result.Data.Orders;
 
 ### Authentication
 
-Add the JWT token to your requests:
+**1. Get JWT Token:**
+```bash
+curl -X POST http://localhost:5118/api/auth/token
+```
+
+**Response:**
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 31536000
+}
+```
+
+**2. Add Token to GraphQL Requests:**
 
 **HTTP Header:**
 ```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtb2NrLWFkbWluLXVzZXIiLCJuYW1lIjoiTW9jayBBZG1pbiBVc2VyIiwiZW1haWwiOiJhZG1pbkBleGFtcGxlLmNvbSIsInJvbGUiOiJBZG1pbiIsImlzcyI6Ik9yZGVyTWFuYWdlbWVudC5HcmFwaFFMIiwiYXVkIjoiT3JkZXJNYW5hZ2VtZW50LkNsaWVudCIsImV4cCI6MjA1MTIyMjQwMH0.hMPIHM6t4XhdpHxdlWkdABFm0lpokhr_kNiXmruqjko
+Authorization: Bearer <accessToken>
 ```
 
 ### Sample GraphQL Queries
@@ -496,14 +509,15 @@ The GraphQL server includes 8 pre-seeded orders with various statuses:
 
 ## Security Considerations
 
-This project uses **static JWT tokens** for simplicity in development and testing. In production, you should implement:
+This project implements **dynamic JWT token generation** via CQRS command pattern. For production deployment:
 
-1. **Dynamic Token Generation** - Issue tokens upon successful login
-2. **Token Refresh** - Implement refresh token flow
-3. **Role-Based Authorization** - Add `[Authorize(Roles = "Admin")]` attributes
-4. **HTTPS** - Use TLS/SSL for all communication
-5. **Token Expiration** - Use shorter expiration times (e.g., 1 hour)
-6. **Secure Storage** - Store tokens securely (HttpOnly cookies or secure storage)
+1. **User Authentication** - Replace mock user with real login/password validation
+2. **Token Refresh** - Implement refresh token flow for long-lived sessions
+3. **Role-Based Authorization** - Add `[Authorize(Roles = "Admin")]` attributes to mutations
+4. **HTTPS** - Use TLS/SSL for all communication (required for production)
+5. **Token Expiration** - Configure shorter expiration times (currently 1 year for testing)
+6. **Secure Storage** - Store tokens in HttpOnly cookies or secure browser storage
+7. **Input Validation** - All user inputs are validated and sanitized (XSS protection implemented)
 
 ## Troubleshooting
 
@@ -585,12 +599,21 @@ dotnet publish -c Release -o ./publish
 ## Security & Quality Implementations
 
 ### Security Measures (XSS, Injection, Leaks, Concurrency)
-- **Anti-XSS:** Leverages Blazor's automatic HTML encoding and strict rendering context to neutralize Cross-Site Scripting (XSS) attacks.
-- **Injection Protection:** 
-  - **SQL Injection:** Mitigated via Entity Framework Core's parameterized queries.
-  - **Query Injection:** Prevented by HotChocolate's strongly-typed GraphQL schema and validation.
-- **Token Leakage:** Secrets are externalized to `appsettings.json` (and Environment Variables in production), preventing hardcoded secrets in source control.
-- **Concurrency Handling:** Scoped database contexts and transactional command execution ensure data integrity during concurrent operations.
+- **Anti-XSS:**
+  - Blazor's automatic HTML encoding and strict rendering context
+  - Custom input validation blocking dangerous characters (`< > & " '`)
+  - FluentValidation rules with sanitization checks
+- **Injection Protection:**
+  - **SQL Injection:** Mitigated via Entity Framework Core's parameterized queries
+  - **Query Injection:** Prevented by HotChocolate's strongly-typed GraphQL schema and validation
+- **Token Security:**
+  - Dynamic JWT generation via CQRS command (no hardcoded tokens)
+  - Tokens generated on-demand with configurable expiration
+  - Secrets externalized to `appsettings.json` (Environment Variables in production)
+- **Concurrency Handling:**
+  - GUID-based order numbers (zero race conditions)
+  - Scoped database contexts and transactional command execution
+  - Optimistic concurrency for data integrity
 
 ### System Capabilities
 - **Observability:** Comprehensive logging configured via `Microsoft.Extensions.Logging` (ILogger) for monitoring system health and request flows.
