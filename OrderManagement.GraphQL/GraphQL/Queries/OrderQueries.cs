@@ -48,7 +48,7 @@ public class OrderQueries
             throw new GraphQLException(
                 ErrorBuilder.New()
                     .SetMessage(firstError.Message)
-                    .SetExtension("code", firstError.Code)
+                    .SetCode(firstError.Code)
                     .Build());
         }
 
